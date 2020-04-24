@@ -1,2 +1,2 @@
-This is main
-yeeeeeeeeeeeeeeeeeeeeeeeeeeeeet
+import pygame
+import math
