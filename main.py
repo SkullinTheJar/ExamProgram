@@ -16,14 +16,18 @@ class Player:
 class MainFrame:
     def __init__(self):
         self.size = self.width, self.height = 1300, 700
-        self.speed = [2, 2]
+        self.speed = [3, 3]
         self.black = 0, 0, 0
 
         self.screen = pygame.display.set_mode(self.size)
         pygame.display.set_caption("INSERT TITLE")
 
-        self.ball = pygame.image.load("C:/Users/WaffleFlower/Picture/Emojis/lenny.png")    # For ur mom's PC
+        '''self.ball = pygame.image.load("lavender heart.png")    # For ur mom's PC
         #self.ball = pygame.image.load("C:/Users/andre/OneDrive/Billeder/Wrench.png")      # For Andreas' PC
+        self.ballrect = self.ball.get_rect()'''
+        self.ball = pygame.Surface((100, 100))
+        pygame.draw.circle(self.ball, (255, 0, 255), (50, 50), 50)
+        #self.ball.fill((255, 0, 255))
         self.ballrect = self.ball.get_rect()
 
     def draw(self):
