@@ -3,51 +3,57 @@ import pygame
 
 pygame.init()
 
-class Player:
-    def __init__(self, xPos, yPos, radius):
-        self.xPos = xPos
-        self.yPos = yPos
-        self.radius = radius
-    
-    def update(self):
-        if self.xPos < 0:
-            self.xPos = 0 + self.radius
+def Main():
+    game = Game((1300, 600))
+    while 1:
+        game.draw()
+        game.update()
 
-class MainFrame:
-    def __init__(self):
-        self.size = self.width, self.height = 1300, 700
-        self.speed = [3, 3]
-        self.black = 0, 0, 0
-
-        self.screen = pygame.display.set_mode(self.size)
-        pygame.display.set_caption("INSERT TITLE")
-
-        '''self.ball = pygame.image.load("lavender heart.png")    # For ur mom's PC
-        #self.ball = pygame.image.load("C:/Users/andre/OneDrive/Billeder/Wrench.png")      # For Andreas' PC
-        self.ballrect = self.ball.get_rect()'''
-        self.ball = pygame.Surface((100, 100))
-        pygame.draw.circle(self.ball, (255, 0, 255), (50, 50), 50)
-        #self.ball.fill((255, 0, 255))
-        self.ballrect = self.ball.get_rect()
+class Player(pygame.sprite.Sprite):
+    def __init__(self, coordinates):
+        super().__init__(self)
+        self.x, self.y = self.coordinates = coordinates
+        self.image = pygame.Surface((10, 10))
+        self.image.fill(255, 0, 255)
+        self.rect = self.image.get_rect
 
     def draw(self):
-        print("do stuff")
+        pass
+    
+    def update(self):
+        pass
+    
+    
+class Projectile((pygame.sprite.Sprite)):
+    def __init__(self, coordinates):
+        super().__init__(self)
+        self.x, self.y = self.coordinates = coordinates
+        
+    def draw(self):
+        pass
 
     def update(self):
-        while 1:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT: sys.exit()
+        pass
 
-            self.ballrect = self.ballrect.move(self.speed)
-            if self.ballrect.left < 0 or self.ballrect.right > self.width:
-                self.speed[0] = -self.speed[0]
-            if self.ballrect.top < 0 or self.ballrect.bottom > self.height:
-                self.speed[1] = -self.speed[1]
+class Wall(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__(self)
+        
+    
+class Game:
+    def __init__(self, size):
+        self.size = size
+        self.screen = pygame.display.set_mode(size)
+        self.playersGroup = pygame.sprite.Group()
+        self.player1 = Player((0, 0))
+        self.player2 = Player((0, 0))
+        self.playersGroup.add(self.player1, self.player2)
 
-            self.screen.fill(self.black)
-            self.screen.blit(self.ball, self.ballrect)
-            pygame.display.flip()
-
-game = MainFrame()
-game.draw()
-game.update()
+    def draw(self):
+        pass
+        
+    def update(self):
+        
+        pygame.display.flip()
+        
+Main()
