@@ -22,8 +22,8 @@ class MainFrame:
         self.screen = pygame.display.set_mode(self.size)
         pygame.display.set_caption("INSERT TITLE")
 
-        # ball = pygame.image.load("lavender heart.png")                             # For Aslaks PC
-        self.ball = pygame.image.load("C:/Users/andre/OneDrive/Billeder/Wrench.png")      # For Andreas' PC
+        self.ball = pygame.image.load("C:/Users/WaffleFlower/Picture/Emojis/lenny.png")    # For ur mom's PC
+        #self.ball = pygame.image.load("C:/Users/andre/OneDrive/Billeder/Wrench.png")      # For Andreas' PC
         self.ballrect = self.ball.get_rect()
 
     def draw(self):
