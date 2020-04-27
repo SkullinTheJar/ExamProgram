@@ -26,13 +26,13 @@ class Player(pygame.sprite.Sprite):
     def update(self, keys):
         if self.n == 1:
             if keys[pygame.K_t]:
-                self.coords = self.coords[0] + self.speed * math.sin(self.angle - 90*math.floor(self.angle/90)), self.coords[1] + self.speed * math.cos(self.angle - 90*math.floor(self.angle/90))
+                self.coords = self.coords[0] + self.speed * math.sin(self.angle - 90*math.floor(self.angle/90)) * self.xAngleSign(self.angle), self.coords[1] + self.speed * math.cos(self.angle - 90*math.floor(self.angle/90)) * self.yAngleSign(self.angle)
                 #move forward
             if keys[pygame.K_f]:
                 self.angle += 1 % 360
                 self.rotate()
             if keys[pygame.K_g]:
-                self.coords = self.coords[0] - self.speed * math.sin(self.angle - 90*math.floor(self.angle/90)), self.coords[1] - self.speed * math.cos(self.angle - 90*math.floor(self.angle/90))
+                self.coords = self.coords[0] - self.speed * math.sin(self.angle - 90*math.floor(self.angle/90)) * self.xAngleSign(self.angle), self.coords[1] - self.speed * math.cos(self.angle - 90*math.floor(self.angle/90)) * self.yAngleSign(self.angle)
                 #move backward
             if keys[pygame.K_h]:
                 self.angle -= 1 % 360
@@ -63,6 +63,18 @@ class Player(pygame.sprite.Sprite):
         self.image = pygame.transform.rotate(self.originalImage, self.angle)
         self.rect = self.image.get_rect()
         self.rect.center = center
+
+    def xAngleSign(self, v):
+        if 90 > v > 270:
+            return -1
+        else:
+            return 1
+            
+    def yAngleSign(self, v):
+        if 0 < v < 180:
+            return -1
+        else:
+            return 1
     
 class Projectile((pygame.sprite.Sprite)):
     def __init__(self, coords):
