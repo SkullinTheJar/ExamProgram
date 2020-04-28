@@ -4,6 +4,25 @@ import math
 
 pygame.init()
 
+def updateCoords(speed, angle, coords, backwards = False):
+    if 0 <= angle <= 90:
+        deltaCoords = [speed * math.cos(math.radians(angle - 90*math.floor(angle/90))), -speed * math.sin(math.radians(angle - 90*math.floor(angle/90)))]
+
+    if 90 < angle <= 180:
+        deltaCoords = [-speed * math.sin(math.radians(angle - 90*math.floor(angle/90))), -speed * math.cos(math.radians(angle - 90*math.floor(angle/90)))] 
+    
+    if 180 < angle <= 270:
+        deltaCoords = [-speed * math.cos(math.radians(angle - 90*math.floor(angle/90))), speed * math.sin(math.radians(angle - 90*math.floor(angle/90)))] 
+    
+    if 270 < angle <= 360:
+        deltaCoords = [speed * math.sin(math.radians(angle - 90*math.floor(angle/90))), speed * math.cos(math.radians(angle - 90*math.floor(angle/90)))]
+
+    if backwards:
+        deltaCoords = -deltaCoords[0], -deltaCoords[1]
+    
+    coords = coords[0] + deltaCoords[0], coords[1] + deltaCoords[1]
+    return coords
+
 def Main():
     game = Game((1300, 600))
     while 1:
@@ -27,59 +46,35 @@ class Player(pygame.sprite.Sprite):
     def update(self, keys):
         if self.n == 1:
             if keys[pygame.K_t]:
-                self.updateCoords()
                 #move forward
+                self.coords = updateCoords(self.speed, self.angle, self.coords)
             if keys[pygame.K_f]:
                 self.angle += self.turnSpeed
                 self.angle %= 360
                 self.rotate()
             if keys[pygame.K_g]:
-                self.updateCoords(True)
+                self.coords = updateCoords(self.speed, self.angle, self.coords, True)
                 #move backward
             if keys[pygame.K_h]:
                 self.angle -= self.turnSpeed
                 self.angle %= 360
                 self.rotate()
-            if keys[pygame.K_q]:
-                #shoot
-                pass
+                
         if self.n == 2:
             if keys[pygame.K_UP]:
-                self.updateCoords()
+                self.coords = updateCoords(self.speed, self.angle, self.coords)
             if keys[pygame.K_LEFT]:
                 self.angle += self.turnSpeed
                 self.angle %= 360
                 self.rotate()
             if keys[pygame.K_DOWN]:
-                self.updateCoords(True)
+                self.coords = updateCoords(self.speed, self.angle, self.coords, True)
             if keys[pygame.K_RIGHT]:
                 self.angle -= self.turnSpeed
                 self.angle %= 360
                 self.rotate()
-            if keys[pygame.K_m]:
-                #shoot
-                pass
+
         self.rect.center = self.coords
-        
-
-    def updateCoords(self, backwards = False):
-        if 0 <= self.angle <= 90:
-            deltaCoords = [self.speed * math.cos(math.radians(self.angle - 90*math.floor(self.angle/90))), -self.speed * math.sin(math.radians(self.angle - 90*math.floor(self.angle/90)))]
-
-        if 90 < self.angle <= 180:
-            deltaCoords = [-self.speed * math.sin(math.radians(self.angle - 90*math.floor(self.angle/90))), -self.speed * math.cos(math.radians(self.angle - 90*math.floor(self.angle/90)))] 
-        
-        if 180 < self.angle <= 270:
-            deltaCoords = [-self.speed * math.cos(math.radians(self.angle - 90*math.floor(self.angle/90))), self.speed * math.sin(math.radians(self.angle - 90*math.floor(self.angle/90)))] 
-        
-        if 270 < self.angle < 360:
-            deltaCoords = [self.speed * math.sin(math.radians(self.angle - 90*math.floor(self.angle/90))), self.speed * math.cos(math.radians(self.angle - 90*math.floor(self.angle/90)))]
-
-        if backwards:
-            deltaCoords = -deltaCoords[0], -deltaCoords[1]
-        
-        self.coords = self.coords[0] + deltaCoords[0], self.coords[1] + deltaCoords[1]
-        
         
     def rotate(self):
         center = self.rect.center
@@ -88,13 +83,21 @@ class Player(pygame.sprite.Sprite):
         self.rect.center = center
     
 class Projectile((pygame.sprite.Sprite)):
-    def __init__(self, coords):
-        pygame.sprite.Sprite().__init__(self)
-        self.x, self.y = self.coords = coords
-
+    def __init__(self, color, coords, radius, speed, angle):
+        pygame.sprite.Sprite.__init__(self)
+        self.radius = radius
+        self.speed = speed
+        self.angle = angle
+        self.image = pygame.Surface((radius * 2, radius * 2)).convert()
+        pygame.draw.circle(self.image, color, (radius, radius), radius)
+        self.rect = self.image.get_rect()
+        self.rect.center = self.coords = coords
+        
     def update(self):
-        #self.rect.move_ip()
-        pass
+        self.prevCoords = self.coords
+        
+        self.rect.center = self.coords = updateCoords(self.speed, self.angle, self.coords)
+        
 
 class Wall(pygame.sprite.Sprite):
     def __init__(self):
@@ -102,21 +105,50 @@ class Wall(pygame.sprite.Sprite):
         pass
     
 class Game:
-    def __init__(self, size):
+    def __init__(self, size, laserLength = 10, cooldown = 500):
         self.size = size
+        self.laserLength = laserLength
+        self.cooldown = cooldown
         self.screen = pygame.display.set_mode(size)
-        self.player1 = Player(1, (650, 300), 0.55, 0.55, 'C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/red tank.png')
-        self.player2 = Player(2, (300, 300), 0.55, 0.55, 'C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/blue tank.png')
+        self.player1 = Player(1, (650, 300), 0.5, 0.5, 'C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/red_tank_exp_v2.png')
+        self.player2 = Player(2, (300, 300), 0.5, 0.5, 'C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/blue_tank_exp.png')
         self.playersGroup = pygame.sprite.Group(self.player1, self.player2)
+        self.laserGroups = []
+        self.lastShot = 0
+        #self.rects = [self.player1.rect, self.player2.rect]
 
     def draw(self):
         self.screen.fill((0, 0, 0))
         self.playersGroup.draw(self.screen)
+        for group in self.laserGroups:
+            group.draw(self.screen)
         
         
     def update(self):
         keys = pygame.key.get_pressed()
         self.playersGroup.update(keys)
-        pygame.display.flip()
+        #self.rects[0] = self.playersGroup.sprites()[0].rect
+        #self.rects[1] = self.playersGroup.sprites()[1].rect
+        for group in self.laserGroups:
+            group.update()
+            if group.sprites().__len__() < self.laserLength:
+                 group.add(Projectile((0, 255, 0), group.sprites()[-1].prevCoords, 2, 1, group.sprites()[-1].angle))
+                 #self.rects.append(group.sprites()[-1].rect)
+            #elif group.sprites().__len__() == self.laserLength:
+            #    group.add(Projectile((0, 0, 0), group.sprites()[-1].prevCoords, 2, 1, group.sprites()[-1].angle))
+            #    self.rects.append(group.sprites()[-1].rect)
+        if pygame.time.get_ticks() > self.lastShot + self.cooldown:
+            if keys[pygame.K_q]:
+                self.laserGroups.append(pygame.sprite.Group(Projectile((0, 255, 0), updateCoords(10, self.player1.angle, self.player1.coords), 2, 1, self.player1.angle)))
+                self.lastShot = pygame.time.get_ticks()
+                #self.rects.append(self.laserGroups[-1].sprites()[0].rect)
+            if keys[pygame.K_m]:
+                self.laserGroups.append(pygame.sprite.Group(Projectile((0, 255, 0), updateCoords(10, self.player2.angle, self.player2.coords), 2, 1, self.player2.angle)))
+                self.lastShot = pygame.time.get_ticks()
+                #self.rects.append(self.laserGroups[-1].sprites()[0].rect)
         
+            
+        #pygame.display.update(self.rects)
+        pygame.display.flip()
+
 Main()
