@@ -105,8 +105,8 @@ class Game:
     def __init__(self, size):
         self.size = size
         self.screen = pygame.display.set_mode(size)
-        self.player1 = Player(1, (650, 300), 0.75, 0.75, 'C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/red tank.png')
-        self.player2 = Player(2, (300, 300), 0.75, 0.75, 'C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/blue tank.png')
+        self.player1 = Player(1, (650, 300), 0.55, 0.55, 'C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/red tank.png')
+        self.player2 = Player(2, (300, 300), 0.55, 0.55, 'C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/blue tank.png')
         self.playersGroup = pygame.sprite.Group(self.player1, self.player2)
 
     def draw(self):
