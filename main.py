@@ -95,14 +95,24 @@ class Projectile((pygame.sprite.Sprite)):
         
     def update(self):
         self.prevCoords = self.coords
-        
         self.rect.center = self.coords = updateCoords(self.speed, self.angle, self.coords)
         
 
 class Wall(pygame.sprite.Sprite):
-    def __init__(self):
-        super().__init__(self)
-        pass
+    def __init__(self, coords, orient, length = 100, width = 3):
+        pygame.sprite.Sprite.__init__(self)
+        self.coords = coords
+        self.length = length
+        self.width = width
+        self.orient = orient
+        if orient:
+            self.image = pygame.Surface((length, width))
+        else:
+            self.image = pygame.Surface((width, length))
+        self.image.fill((255, 255, 255))
+        self.rect = self.image.get_rect()
+        self.rect.bottomleft = coords
+
     
 class Game:
     def __init__(self, size, laserLength = 10, cooldown = 500):
@@ -110,29 +120,38 @@ class Game:
         self.laserLength = laserLength
         self.cooldown = cooldown
         self.screen = pygame.display.set_mode(size)
-        self.player1 = Player(1, (650, 300), 0.5, 0.5, 'C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/red_tank_exp_v2.png')
-        self.player2 = Player(2, (300, 300), 0.5, 0.5, 'C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/blue_tank_exp.png')
-        self.playersGroup = pygame.sprite.Group(self.player1, self.player2)
+        #Ander Ass
+        #self.player1 = Player(1, (650, 300), 0.5, 0.5, 'C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/red_tank_exp_v2.png')
+        #self.player2 = Player(2, (300, 300), 0.5, 0.5, 'C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/blue_tank_exp.png')
+        #ur mom
+        self.player1 = Player(1, (650, 300), 0.5, 0.5, 'C:/Users/WaffleFlower/Desktop/Skole/Programmering/ExamProgram/red_tank_exp_v2.png')
+        self.player2 = Player(2, (300, 300), 0.5, 0.5, 'C:/Users/WaffleFlower/Desktop/Skole/Programmering/ExamProgram/blue_tank_exp.png')
+        self.players = pygame.sprite.Group(self.player1, self.player2)
         self.laserGroups = []
         self.lastShot = 0
+        self.walls = pygame.sprite.Group(Wall((200, 200), True), Wall((200, 200), False))
         #self.rects = [self.player1.rect, self.player2.rect]
 
     def draw(self):
         self.screen.fill((0, 0, 0))
-        self.playersGroup.draw(self.screen)
+        self.players.draw(self.screen)
+        self.walls.draw(self.screen)
         for group in self.laserGroups:
             group.draw(self.screen)
         
         
     def update(self):
         keys = pygame.key.get_pressed()
-        self.playersGroup.update(keys)
-        #self.rects[0] = self.playersGroup.sprites()[0].rect
-        #self.rects[1] = self.playersGroup.sprites()[1].rect
+        self.players.update(keys)
+        #self.rects[0] = self.players.sprites()[0].rect
+        #self.rects[1] = self.players.sprites()[1].rect
         for group in self.laserGroups:
             group.update()
             if group.sprites().__len__() < self.laserLength:
-                 group.add(Projectile((0, 255, 0), group.sprites()[-1].prevCoords, 2, 1, group.sprites()[-1].angle))
+                group.add(Projectile((0, 255, 0), group.sprites()[-1].prevCoords, 2, 1, group.sprites()[-1].angle))
+            if group.sprites()[-1].coords[0] > self.size[0] or group.sprites()[-1].coords[0] < 0 or group.sprites()[-1].coords[1] > self.size[1] or group.sprites()[-1].coords[1] < 0:
+                group.empty()
+                self.laserGroups.remove(group) 
                  #self.rects.append(group.sprites()[-1].rect)
             #elif group.sprites().__len__() == self.laserLength:
             #    group.add(Projectile((0, 0, 0), group.sprites()[-1].prevCoords, 2, 1, group.sprites()[-1].angle))
