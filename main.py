@@ -44,6 +44,8 @@ class Player(pygame.sprite.Sprite):
         self.angle = 0
 
     def update(self, keys):
+        self.prevCoords = self.coords
+        self.prevAngle = self.angle
         if self.n == 1:
             if keys[pygame.K_t]:
                 #move forward
@@ -81,6 +83,11 @@ class Player(pygame.sprite.Sprite):
         self.image = pygame.transform.rotate(self.originalImage, self.angle)
         self.rect = self.image.get_rect()
         self.rect.center = center
+
+    def wallCollide(self):
+        self.coords = self.prevCoords
+        self.angle = self.prevAngle
+
     
 class Projectile((pygame.sprite.Sprite)):
     def __init__(self, color, coords, radius, speed, angle):
@@ -121,11 +128,11 @@ class Game:
         self.cooldown = cooldown
         self.screen = pygame.display.set_mode(size)
         #Ander Ass
-        #self.player1 = Player(1, (650, 300), 0.5, 0.5, 'C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/red_tank_exp_v2.png')
-        #self.player2 = Player(2, (300, 300), 0.5, 0.5, 'C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/blue_tank_exp.png')
+        self.player1 = Player(1, (650, 300), 0.5, 0.5, 'C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/red_tank_exp_v2.png')
+        self.player2 = Player(2, (300, 300), 0.5, 0.5, 'C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/blue_tank_exp.png')
         #ur mom
-        self.player1 = Player(1, (650, 300), 0.5, 0.5, 'C:/Users/WaffleFlower/Desktop/Skole/Programmering/ExamProgram/red_tank_exp_v2.png')
-        self.player2 = Player(2, (300, 300), 0.5, 0.5, 'C:/Users/WaffleFlower/Desktop/Skole/Programmering/ExamProgram/blue_tank_exp.png')
+        #self.player1 = Player(1, (650, 300), 0.5, 0.5, 'C:/Users/WaffleFlower/Desktop/Skole/Programmering/ExamProgram/red_tank_exp_v2.png')
+        #self.player2 = Player(2, (300, 300), 0.5, 0.5, 'C:/Users/WaffleFlower/Desktop/Skole/Programmering/ExamProgram/blue_tank_exp.png')
         self.players = pygame.sprite.Group(self.player1, self.player2)
         self.laserGroups = []
         self.lastShot = 0
@@ -138,7 +145,6 @@ class Game:
         self.walls.draw(self.screen)
         for group in self.laserGroups:
             group.draw(self.screen)
-        
         
     def update(self):
         keys = pygame.key.get_pressed()
@@ -166,7 +172,12 @@ class Game:
                 self.lastShot = pygame.time.get_ticks()
                 #self.rects.append(self.laserGroups[-1].sprites()[0].rect)
         
-            
+        
+        for player in pygame.sprite.groupcollide(self.players, self.walls, False, False):
+            if pygame.sprite.groupcollide(self.players, self.walls, False, False).__len__() > 0:
+                player.wallCollide()
+
+
         #pygame.display.update(self.rects)
         pygame.display.flip()
 
