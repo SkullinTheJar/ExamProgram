@@ -128,8 +128,8 @@ class Game:
         self.cooldown = cooldown
         self.screen = pygame.display.set_mode(size)
         #Ander Ass
-        self.player1 = Player(1, (650, 300), 0.5, 0.5, 'C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/red_tank_exp_v2.png')
-        self.player2 = Player(2, (300, 300), 0.5, 0.5, 'C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/blue_tank_exp.png')
+        self.player1 = Player(1, (650, 300), 1, 0.5, 'C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/red tank.png')
+        self.player2 = Player(2, (300, 300), 1, 0.5, 'C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/blue tank.png')
         #ur mom
         #self.player1 = Player(1, (650, 300), 0.5, 0.5, 'C:/Users/WaffleFlower/Desktop/Skole/Programmering/ExamProgram/red_tank_exp_v2.png')
         #self.player2 = Player(2, (300, 300), 0.5, 0.5, 'C:/Users/WaffleFlower/Desktop/Skole/Programmering/ExamProgram/blue_tank_exp.png')
@@ -145,6 +145,8 @@ class Game:
         self.walls.draw(self.screen)
         for group in self.laserGroups:
             group.draw(self.screen)
+        pygame.draw.lines(self.screen, (255, 255, 255), False, (self.player1.rect.bottomleft, (self.player1.rect.bottomright), (self.player1.rect.topright), (self.player1.rect.topleft), self.player1.rect.bottomleft)) 
+        
         
     def update(self):
         keys = pygame.key.get_pressed()
@@ -173,9 +175,16 @@ class Game:
                 #self.rects.append(self.laserGroups[-1].sprites()[0].rect)
         
         
-        for player in pygame.sprite.groupcollide(self.players, self.walls, False, False):
+        '''for player in pygame.sprite.groupcollide(self.players, self.walls, False, False):
             if pygame.sprite.groupcollide(self.players, self.walls, False, False).__len__() > 0:
-                player.wallCollide()
+                player.wallCollide()'''
+
+        '''for x in range(0, self.size[0]):
+            for player in self.players:
+                for wall in self.walls:
+                    if wall.orient:
+                        pass'''
+
 
 
         #pygame.display.update(self.rects)
