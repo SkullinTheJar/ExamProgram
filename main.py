@@ -5,6 +5,7 @@ import math
 pygame.init()
 
 def updateCoords(speed, angle, coords, backwards = False):
+    angle %= 360
     if 0 <= angle <= 90:
         deltaCoords = [speed * math.cos(math.radians(angle - 90*math.floor(angle/90))), -speed * math.sin(math.radians(angle - 90*math.floor(angle/90)))]
 
@@ -51,7 +52,7 @@ class Player(pygame.sprite.Sprite):
         self.rect.center = self.coords = coords
         self.angle = 0
         self.mask = pygame.mask.from_surface(self.image)
-        print(str(self.mask.count()))
+        #print(str(self.mask.count()))
 
     def update(self, keys):
         self.prevCoords = self.coords
@@ -90,7 +91,6 @@ class Player(pygame.sprite.Sprite):
         #print(str(self.image.get_at((0, 0))) + ' ' + str(self.image.get_at((15, 15))))
         
         
-        
     def rotate(self):
         center = self.rect.center
         self.image = pygame.transform.rotate(self.originalImage, self.angle)
@@ -103,21 +103,63 @@ class Player(pygame.sprite.Sprite):
         self.angle = self.prevAngle
 
     
-class Projectile((pygame.sprite.Sprite)):
-    def __init__(self, color, coords, radius, speed, angle):
+class LeadProj((pygame.sprite.Sprite)):
+    def __init__(self, color, coords, radius, speed, angle, length):
         pygame.sprite.Sprite.__init__(self)
         self.radius = radius
         self.speed = speed
         self.angle = angle
         self.image = pygame.Surface((radius * 2, radius * 2)).convert()
+        self.image.set_colorkey((0, 0, 0))
         pygame.draw.circle(self.image, color, (radius, radius), radius)
         self.rect = self.image.get_rect()
         self.rect.center = self.coords = coords
+        self.mask = pygame.mask.from_surface(self.image)
+        self.spawned = False
+        
         
     def update(self):
         self.prevCoords = self.coords
         self.rect.center = self.coords = updateCoords(self.speed, self.angle, self.coords)
-        
+        if not self.spawned:
+            self.subProj = SubProj(self.prevCoords, radius, color, length - 2, self)
+            self.spawned = True
+    
+    def wallCollide(self, walls):
+        for wall in walls:
+            '''if self.angle == 0 or self.angle == 90 or self.angle == 180 or self.angle == 270 or self.angle == 360:
+                    self.angle += 180
+                    self.angle %= 360
+            else:'''
+            if wall.orient:
+                self.angle = 360 - self.angle
+
+            if not wall.orient:
+                if 0 < self.angle < 180:
+                    self.angle = 180 - self.angle
+                if 180 < self.angle < 360:
+                    self.angle = 360 - (self.angle - 180)
+                
+class SubProj((pygame.sprite.Sprite)):
+    def __init__(self, coords, radius, color, n, proj):
+        self.radius = radius
+        self.color = color
+        self.image = pygame.Surface((radius * 2, radius * 2)).convert()
+        self.image.set_colorkey((0, 0, 0))
+        pygame.draw.circle(self.image, color, (radius, radius), radius)
+        self.rect = self.image.get_rect()
+        self.rect.center = self.coords = coords
+        self.spawned = False
+        self.proj = proj
+
+    def update(self):
+        self.coords = self.proj.prevCoords
+        if not self.spawned:
+            if n > 0:
+                self.subProj = SubProj(self.prevCoords, self.radius, self.color, self.n - 1, self)
+                self.spawned = True
+        self.subproj.update
+        self.subproj.draw
 
 class Wall(pygame.sprite.Sprite):
     def __init__(self, coords, orient, length = 100, width = 3):
@@ -135,7 +177,7 @@ class Wall(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.bottomleft = coords
         self.mask = pygame.mask.from_surface(self.image)
-        print(str(self.mask.count()))
+        #print(str(self.mask.count()))
 
     
 class Game:
@@ -171,21 +213,21 @@ class Game:
         for group in self.laserGroups:
             group.update()
             if group.sprites().__len__() < self.laserLength:
-                group.add(Projectile((0, 255, 0), group.sprites()[-1].prevCoords, 2, 1, group.sprites()[-1].angle))
+                group.add(LeadProj((0, 255, 0), group.sprites()[-1].prevCoords, 2, 1, group.sprites()[-1].angle))
             if group.sprites()[-1].coords[0] > self.size[0] or group.sprites()[-1].coords[0] < 0 or group.sprites()[-1].coords[1] > self.size[1] or group.sprites()[-1].coords[1] < 0:
                 group.empty()
                 self.laserGroups.remove(group)
                  #self.rects.append(group.sprites()[-1].rect)
             #elif group.sprites().__len__() == self.laserLength:
-            #    group.add(Projectile((0, 0, 0), group.sprites()[-1].prevCoords, 2, 1, group.sprites()[-1].angle))
+            #    group.add(LeadProj((0, 0, 0), group.sprites()[-1].prevCoords, 2, 1, group.sprites()[-1].angle))
             #    self.rects.append(group.sprites()[-1].rect)
         if pygame.time.get_ticks() > self.lastShot + self.cooldown:
             if keys[pygame.K_q]:
-                self.laserGroups.append(pygame.sprite.Group(Projectile((0, 255, 0), updateCoords(10, self.player1.angle, self.player1.coords), 2, 1, self.player1.angle)))
+                self.laserGroups.append(pygame.sprite.Group(LeadProj((0, 255, 0), updateCoords(10, self.player1.angle, self.player1.coords), 2, 1, self.player1.angle)))
                 self.lastShot = pygame.time.get_ticks()
                 #self.rects.append(self.laserGroups[-1].sprites()[0].rect)
             if keys[pygame.K_m]:
-                self.laserGroups.append(pygame.sprite.Group(Projectile((0, 255, 0), updateCoords(10, self.player2.angle, self.player2.coords), 2, 1, self.player2.angle)))
+                self.laserGroups.append(pygame.sprite.Group(LeadProj((0, 255, 0), updateCoords(10, self.player2.angle, self.player2.coords), 2, 1, self.player2.angle)))
                 self.lastShot = pygame.time.get_ticks()
                 #self.rects.append(self.laserGroups[-1].sprites()[0].rect)
         
@@ -198,6 +240,17 @@ class Game:
                     if collisions[player].__len__() > 0:
                         player.wallCollide()
 
+        
+        for laser in self.laserGroups:
+            collisions = pygame.sprite.groupcollide(laser, self.walls, False, False)
+            for leadProj in collisions:
+                if collisions[leadProj].__len__() > 0:
+                    collisions = pygame.sprite.groupcollide(laser, self.walls, False, False, pygame.sprite.collide_mask)
+                    for leadProj in collisions:
+                        if collisions[leadProj].__len__() > 0:
+                            leadProj.wallCollide(collisions[leadProj])
+                        
+                
         #pygame.display.update(self.rects)
         pygame.display.flip()
 
