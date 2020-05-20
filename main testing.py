@@ -178,9 +178,9 @@ class Wall(pygame.sprite.Sprite):
         self.width = width
         self.orient = orient
         if orient:
-            self.image = pygame.Surface((length, width))
+            self.image = pygame.Surface((length + width, width))
         else:
-            self.image = pygame.Surface((width, length))
+            self.image = pygame.Surface((width, length + width))
         self.image.fill((255, 255, 255))
         self.image.set_colorkey((0, 0, 0))
         self.rect = self.image.get_rect()
@@ -195,7 +195,7 @@ class Game:
         self.laserLength = laserLength
         self.cooldown = cooldown
         self.screen = pygame.display.set_mode(size)
-        self.player1StartPos = 300, 300
+        self.player1StartPos = 60, 100
         self.player2StartPos = 650, 300
         self.player1 = Player(1, self.player1StartPos, 0.75, 0.5, 'C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/red tank.png')
         self.player2 = Player(2, self.player2StartPos, 0.75, 0.5, 'C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/blue tank.png')
@@ -204,7 +204,13 @@ class Game:
         self.players = pygame.sprite.Group(self.player1, self.player2)
         self.lasers = pygame.sprite.Group()
         self.lastShot = -cooldown
-        self.walls = pygame.sprite.Group(Wall((200, 200), True), Wall((200, 200), False))
+        self.walls = pygame.sprite.Group(
+            Wall((0, 60), True, self.size[0]), Wall((0, self.size[1]), False, self.size[1] - 60), 
+            Wall((0, self.size[1]), True, self.size[0]), Wall((self.size[0] - 3, self.size[1]), False, self.size[1] - 60), 
+            Wall((120, 120), False, 60), Wall((120, 120), True), Wall((220, 220), False), Wall((120, 320), False), 
+            Wall((120, 320), True), Wall((120, 420), False), Wall((0, 510), True, 220), Wall((220, 510), False), 
+            Wall((220, 410), True), Wall((320, 410), False), Wall((420, 410), False)
+            )
         self.p1score = 0
         self.p2score = 0
         self.font = pygame.font.Font(pygame.font.get_default_font(), 50)
@@ -236,7 +242,7 @@ class Game:
             if keys[pygame.K_m]:
                 self.lasers.add(LeadProj(updateCoords(20, self.player2.angle, self.player2.coords), 2, (0, 255, 0), self.screen, self.laserLength, 1.25, self.player2.angle,))
                 #self.rects.append(self.laserGroups[-1].sprites()[0].rect)
-                self.lastShot = pygame.time.get_ticks()  
+                self.lastShot = pygame.time.get_ticks()
 
         self.collideGroups(self.players, self.walls, 'player-wall')
         self.collideGroups(self.lasers, self.walls, 'laser-wall')
