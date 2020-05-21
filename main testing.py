@@ -321,4 +321,3 @@ class Game:
         
         #pygame.display.update(self.rects)    
 Main()
-f
