@@ -24,13 +24,6 @@ def updateCoords(speed, angle, coords, backwards = False):
     coords = coords[0] + deltaCoords[0], coords[1] + deltaCoords[1]
     return coords
 
-def better_collide_mask(sprite1, sprite2):
-    if pygame.sprite.collide_mask(sprite1, sprite2) != None:
-        return True
-    else:
-        return False
-
-
 def Main():
     game = Game((1300, 600))
     while 1:
@@ -40,7 +33,7 @@ def Main():
             if event.type == pygame.QUIT: sys.exit()
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, n, coords, speed, turnSpeed, image):
+    def __init__(self, n, coords, speed, turnSpeed, image, upgradeCool = 2000):
         pygame.sprite.Sprite.__init__(self)
         self.speed = speed
         self.turnSpeed = turnSpeed
@@ -52,7 +45,9 @@ class Player(pygame.sprite.Sprite):
         self.rect.center = self.coords = self.startCoords = coords
         self.angle = 0
         self.mask = pygame.mask.from_surface(self.image)
-        
+        self.upgradeCool = upgradeCool
+        self.upgrade = None
+        self.upgradeTime = 0
 
         #print(str(self.mask.count()))
 
@@ -91,7 +86,11 @@ class Player(pygame.sprite.Sprite):
 
         self.rect.center = self.coords
         #print(str(self.image.get_at((0, 0))) + ' ' + str(self.image.get_at((15, 15))))
-        
+
+        if self.upgradeTime + self.upgradeCool < pygame.time.get_ticks():
+            self.upgrade = None
+        if self.upgrade != None:
+            print('upgraded!')
         
     def rotate(self):
         center = self.rect.center
@@ -189,9 +188,15 @@ class Wall(pygame.sprite.Sprite):
         #print(str(self.mask.count()))
 
 class Upgrade(pygame.sprite.Sprite):
-    def __init__(self):
-        
-
+    def __init__(self, color, coords):
+        pygame.sprite.Sprite.__init__(self)
+        self.color = color
+        self.image = pygame.Surface((10, 10))
+        self.image.fill(color)
+        self.image.set_colorkey((0, 0, 0))
+        self.mask = pygame.mask.from_surface(self.image)
+        self.rect = self.image.get_rect()
+        self.rect.center = coords
     
 class Game:
     def __init__(self, size, laserLength = 10, cooldown = 500):
@@ -201,12 +206,13 @@ class Game:
         self.screen = pygame.display.set_mode(size)
         self.player1StartPos = 60, 100
         self.player2StartPos = 650, 300
-        self.player1 = Player(1, self.player1StartPos, 0.75, 0.5, 'C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/red tank.png')
-        self.player2 = Player(2, self.player2StartPos, 0.75, 0.5, 'C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/blue tank.png')
-        #self.player1 = Player(1, (650, 300), 0.5, 0.5, 'C:/Users/WaffleFlower/Desktop/Skole/Programmering/ExamProgram/red_tank_exp_v2.png')
-        #self.player2 = Player(2, (300, 300), 0.5, 0.5, 'C:/Users/WaffleFlower/Desktop/Skole/Programmering/ExamProgram/blue_tank_exp.png')
+        #self.player1 = Player(1, self.player1StartPos, 0.75, 0.5, 'C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/red tank.png')
+        #self.player2 = Player(2, self.player2StartPos, 0.75, 0.5, 'C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/blue tank.png')
+        self.player1 = Player(1, (650, 300), 0.5, 0.5, 'C:/Users/WaffleFlower/Desktop/Skole/Programmering/ExamProgram/red_tank_exp_v2.png')
+        self.player2 = Player(2, (300, 300), 0.5, 0.5, 'C:/Users/WaffleFlower/Desktop/Skole/Programmering/ExamProgram/blue_tank_exp.png')
         self.players = pygame.sprite.Group(self.player1, self.player2)
         self.lasers = pygame.sprite.Group()
+        self.upgrades = pygame.sprite.Group(Upgrade((255, 255, 0), (450, 300)))
         self.lastShot = -cooldown
         self.walls = pygame.sprite.Group(
             Wall((0, 60), True, self.size[0]), Wall((0, self.size[1]), False, self.size[1] - 60), 
@@ -225,6 +231,7 @@ class Game:
         self.players.draw(self.screen)
         self.walls.draw(self.screen)
         self.lasers.draw(self.screen)
+        self.upgrades.draw(self.screen)
 
         self.screen.blit(self.font.render('Player 1: ' + str(self.p1score), False, (255, 0, 0)), (self.size[0] / 2 - 150, 1))
         self.screen.blit(self.font.render('Player 2: ' + str(self.p2score), False, (0, 0, 255)), (self.size[0] / 2 + 150, 1))
@@ -252,6 +259,7 @@ class Game:
         self.collideGroups(self.lasers, self.walls, 'laser-wall')
         self.collideGroups(self.lasers, self.players, 'laser-player')
         self.collideGroups(self.players, self.players, 'player-player')
+        self.collideGroups(self.lasers, self.upgrades, 'player-upgrade')
 
         pygame.display.flip()
 
@@ -277,6 +285,10 @@ class Game:
                             if sprite != collisions[sprite][0]:
                                 sprite.wallCollide()
                                 collisions[sprite][0].wallCollide()
+                        if resultType == 'player-upgrade':
+                            sprite.upgrade = collisions[sprite][0].color
+                            sprite.upgradeTime = pygame.time.get_ticks()
+                            collisions[sprite][0].kill()
         
     def reset(self):
        self.player1.reset()
