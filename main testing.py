@@ -171,7 +171,7 @@ class SubProj(Projectile):
         self.screen.blit(self.image, self.rect)
 
 class Wall(pygame.sprite.Sprite):
-    def __init__(self, coords, orient, length = 100, width = 3):
+    def __init__(self, coords, orient, length = 100, width = 3, invert = False):
         pygame.sprite.Sprite.__init__(self)
         self.coords = coords
         self.length = length
@@ -184,12 +184,17 @@ class Wall(pygame.sprite.Sprite):
         self.image.fill((255, 255, 255))
         self.image.set_colorkey((0, 0, 0))
         self.rect = self.image.get_rect()
-        self.rect.bottomleft = coords
+        if not invert:
+            self.rect.bottomleft = coords
+        if invert:
+            self.rect.topright = coords
+        
         self.mask = pygame.mask.from_surface(self.image)
         #print(str(self.mask.count()))
 
 class Upgrade(pygame.sprite.Sprite):
     def __init__(self):
+        pass
         
 
     
@@ -209,12 +214,24 @@ class Game:
         self.lasers = pygame.sprite.Group()
         self.lastShot = -cooldown
         self.walls = pygame.sprite.Group(
+            #Laver de ydre mure
             Wall((0, 60), True, self.size[0]), Wall((0, self.size[1]), False, self.size[1] - 60), 
             Wall((0, self.size[1]), True, self.size[0]), Wall((self.size[0] - 3, self.size[1]), False, self.size[1] - 60), 
-            Wall((120, 120), False, 60), Wall((120, 120), True), Wall((220, 220), False), Wall((120, 320), False), 
-            Wall((120, 320), True), Wall((120, 420), False), Wall((0, 510), True, 220), Wall((220, 510), False), 
-            Wall((220, 410), True), Wall((320, 410), False), Wall((420, 410), False), Wall((420, 410), True, 120)
+            #Laver de indre mure
+            Wall((120, 120), False, 60), Wall((120, 120), True), Wall((220, 220), False), Wall((120, 320), True), 
+            Wall((120, 420), False, 200), Wall((100, 510), True, 120), Wall((220, 510), False), Wall((220, 410), True), 
+            Wall((320, 410), False), Wall((420, 410), False, 150), Wall((420, 410), True, 200), Wall((520, 310), False, 150), 
+            Wall((420, 160), True), Wall((320, 160), False), Wall((420, 600), False, 90), Wall((320, 510), True), 
+            Wall((500, 510), True, 120), Wall((500, 510), False), Wall((520, 200), True, 90)
             )
+        self.counter = 0
+        for sprite in self.walls:
+            if self.counter <= 3:
+                pass
+            else:
+                self.walls.add(Wall((1300 - sprite.coords[0], 660 - sprite.coords[1]), sprite.orient, sprite.length, sprite.width, True))
+            self.counter += 1
+
         self.p1score = 0
         self.p2score = 0
         self.font = pygame.font.Font(pygame.font.get_default_font(), 50)
