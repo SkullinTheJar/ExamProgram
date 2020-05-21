@@ -188,6 +188,10 @@ class Wall(pygame.sprite.Sprite):
         self.mask = pygame.mask.from_surface(self.image)
         #print(str(self.mask.count()))
 
+class Upgrade(pygame.sprite.Sprite):
+    def __init__(self):
+        
+
     
 class Game:
     def __init__(self, size, laserLength = 10, cooldown = 500):
@@ -209,7 +213,7 @@ class Game:
             Wall((0, self.size[1]), True, self.size[0]), Wall((self.size[0] - 3, self.size[1]), False, self.size[1] - 60), 
             Wall((120, 120), False, 60), Wall((120, 120), True), Wall((220, 220), False), Wall((120, 320), False), 
             Wall((120, 320), True), Wall((120, 420), False), Wall((0, 510), True, 220), Wall((220, 510), False), 
-            Wall((220, 410), True), Wall((320, 410), False), Wall((420, 410), False)
+            Wall((220, 410), True), Wall((320, 410), False), Wall((420, 410), False), Wall((420, 410), True, 120)
             )
         self.p1score = 0
         self.p2score = 0
