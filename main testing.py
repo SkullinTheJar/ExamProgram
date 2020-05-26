@@ -210,8 +210,8 @@ class Game:
         self.laserLength = laserLength
         self.cooldown = cooldown
         self.screen = pygame.display.set_mode(size)
-        self.player1 = Player(1, (random.randint(0, self.size[0]),  random.randint(60, self.size[1])), 0.5, 0.5, 'C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/red tank.png', size)
-        self.player2 = Player(2, (random.randint(0, self.size[0]),  random.randint(60, self.size[1])), 0.5, 0.5, 'C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/blue tank.png', size)
+        self.player1 = Player(1, (random.randint(0, self.size[0]),  random.randint(60, self.size[1])), 0.75, 0.5, 'C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/red tank.png', size)
+        self.player2 = Player(2, (random.randint(0, self.size[0]),  random.randint(60, self.size[1])), 0.75, 0.5, 'C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/blue tank.png', size)
         #self.player1 = Player(1, (650, 300), 0.5, 0.5, 'C:/Users/WaffleFlower/Desktop/Skole/Programmering/ExamProgram/red_tank_exp_v2.png')
         #self.player2 = Player(2, (300, 300), 0.5, 0.5, 'C:/Users/WaffleFlower/Desktop/Skole/Programmering/ExamProgram/blue_tank_exp.png')
         self.players = pygame.sprite.Group(self.player1, self.player2)
@@ -229,7 +229,7 @@ class Game:
             Wall((420, 160), True), Wall((320, 160), False), Wall((420, 600), False, 90), Wall((320, 510), True), 
             Wall((500, 510), True, 120), Wall((500, 510), False), Wall((520, 200), True, 90)
             )
-        self.fixSpawn()
+        #self.fixSpawn()
         self.counter = 0
         for sprite in self.walls:
             if self.counter <= 3:
@@ -281,7 +281,6 @@ class Game:
         collisions = pygame.sprite.groupcollide(group1, group2, False, False)
         for sprite in collisions:
             collisions = pygame.sprite.groupcollide(group1, group2, False, False, pygame.sprite.collide_mask)
-            print(collisions)
             for sprite in collisions:
                 if resultType == 'player-wall':
                     sprite.wallCollide()
@@ -297,23 +296,18 @@ class Game:
                     sprite.kill()
                     self.reset()
                 if resultType == 'player-player':
-                        if sprite != collisions[sprite][0]:
-                            sprite.wallCollide()
-                            print('players collided')
+                    if sprite != collisions[sprite][0]:
+                        sprite.wallCollide()
+                        collisions[sprite][0].wallCollide()
                 if resultType == 'player-upgrade':
                     sprite.upgrade = collisions[sprite][0].color
                     sprite.upgradeTime = pygame.time.get_ticks()
                     collisions[sprite][0].kill()
-                if resultType == None:
-                    return False
-                return True
-
-            return False
         
     def reset(self):
        self.player1.reset()
        self.player2.reset()
-       self.fixSpawn()
+       #self.fixSpawn()
 
     def fixSpawn(self):
         while self.collideGroups(self.players, self.walls, None) or self.collideGroups(self.players, self.players, None):
