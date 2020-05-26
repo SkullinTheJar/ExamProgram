@@ -204,16 +204,19 @@ class Upgrade(pygame.sprite.Sprite):
     
 class Game:
     def __init__(self, size, laserLength = 10, cooldown = 500):
+        self.laserSound = pygame.mixer.Sound('C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/LaserShotSound.mp3')
+        self.laserBounceSound = pygame.mixer.Sound('C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/LaserBounceSound.mp3')
+        self.explosionSound = pygame.mixer.Sound('C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/LaserBOOM.mp3')
         self.size = size
         self.laserLength = laserLength
         self.cooldown = cooldown
         self.screen = pygame.display.set_mode(size)
         self.player1StartPos = 60, 100
         self.player2StartPos = 650, 300
-        #self.player1 = Player(1, self.player1StartPos, 0.75, 0.5, 'C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/red tank.png')
-        #self.player2 = Player(2, self.player2StartPos, 0.75, 0.5, 'C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/blue tank.png')
-        self.player1 = Player(1, (650, 300), 0.5, 0.5, 'C:/Users/WaffleFlower/Desktop/Skole/Programmering/ExamProgram/red_tank_exp_v2.png')
-        self.player2 = Player(2, (300, 300), 0.5, 0.5, 'C:/Users/WaffleFlower/Desktop/Skole/Programmering/ExamProgram/blue_tank_exp.png')
+        self.player1 = Player(1, self.player1StartPos, 0.75, 0.5, 'C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/red tank.png')
+        self.player2 = Player(2, self.player2StartPos, 0.75, 0.5, 'C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/blue tank.png')
+        #self.player1 = Player(1, (650, 300), 0.5, 0.5, 'C:/Users/WaffleFlower/Desktop/Skole/Programmering/ExamProgram/red_tank_exp_v2.png')
+        #self.player2 = Player(2, (300, 300), 0.5, 0.5, 'C:/Users/WaffleFlower/Desktop/Skole/Programmering/ExamProgram/blue_tank_exp.png')
         self.players = pygame.sprite.Group(self.player1, self.player2)
         self.lasers = pygame.sprite.Group()
         self.upgrades = pygame.sprite.Group(Upgrade((255, 255, 0), (450, 300)))
@@ -264,6 +267,7 @@ class Game:
             if keys[pygame.K_q]:
                 #coords, radius, color, screen, length, speed, angle
                 self.lasers.add(LeadProj(updateCoords(20, self.player1.angle, self.player1.coords), 2, (0, 255, 0), self.screen, self.laserLength, 1.25, self.player1.angle,))
+                self.laserSound.play()
                 #self.rects.append(self.laserGroups[-1].sprites()[0].rect)
                 self.lastShot = pygame.time.get_ticks()
             if keys[pygame.K_m]:
@@ -290,11 +294,13 @@ class Game:
                             sprite.wallCollide()
                         if resultType == 'laser-wall':
                             sprite.wallCollide(collisions[sprite])
+                            self.laserBounceSound.play()
                         if resultType == 'laser-player':
                             if collisions[sprite][0] == self.player1:
                                 self.p2score += 1
                             if collisions[sprite][0] == self.player2:
                                 self.p1score += 1
+                            self.explosionSound.play()
                             sprite.kill()
                             self.reset()
                         if resultType == 'player-player':
