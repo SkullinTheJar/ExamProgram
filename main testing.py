@@ -45,8 +45,8 @@ class Player(pygame.sprite.Sprite):
         self.originalImage.set_colorkey((0, 0, 0))
         self.image = self.originalImage
         self.rect = self.image.get_rect()
-        self.rect.center = self.coords = coords
-        self.angle = 0
+        self.coords = self.prevCoords = self.rect.center = coords
+        self.angle = self.prevAngle = 0
         self.mask = pygame.mask.from_surface(self.image)
         self.upgradeCool = upgradeCool
         self.upgrade = None
@@ -104,7 +104,7 @@ class Player(pygame.sprite.Sprite):
         self.angle = self.prevAngle
 
     def reset(self):
-        self.coords = random.randint(0, self.mapSize[0]), random.randint(60, self.mapSize[1])
+        self.coords = self.prevCoords = self.rect.center = random.randint(0, self.mapSize[0]), random.randint(60, self.mapSize[1])
         self.angle = 0
         self.rotate()
 
@@ -229,7 +229,7 @@ class Game:
             Wall((420, 160), True), Wall((320, 160), False), Wall((420, 600), False, 90), Wall((320, 510), True), 
             Wall((500, 510), True, 120), Wall((500, 510), False), Wall((520, 200), True, 90)
             )
-        #self.fixSpawn()
+        self.fixSpawn()
         self.counter = 0
         for sprite in self.walls:
             if self.counter <= 3:
@@ -261,11 +261,11 @@ class Game:
         if pygame.time.get_ticks() > self.lastShot + self.cooldown:
             if keys[pygame.K_q]:
                 #coords, radius, color, screen, length, speed, angle
-                self.lasers.add(LeadProj(updateCoords(20, self.player1.angle, self.player1.coords), 2, (0, 255, 0), self.screen, self.laserLength, 1.25, self.player1.angle,))
+                self.lasers.add(LeadProj(updateCoords(20, self.player1.angle, self.player1.coords), 2, (0, 255, 0), self.screen, self.laserLength, 1.25, self.player1.angle))
                 self.laserSound.play()
                 self.lastShot = pygame.time.get_ticks()
             if keys[pygame.K_m]:
-                self.lasers.add(LeadProj(updateCoords(20, self.player2.angle, self.player2.coords), 2, (0, 255, 0), self.screen, self.laserLength, 1.25, self.player2.angle,))
+                self.lasers.add(LeadProj(updateCoords(20, self.player2.angle, self.player2.coords), 2, (0, 255, 0), self.screen, self.laserLength, 1.25, self.player2.angle))
                 self.laserSound.play()
                 self.lastShot = pygame.time.get_ticks()
 
@@ -273,7 +273,7 @@ class Game:
         self.collideGroups(self.lasers, self.walls, 'laser-wall')
         self.collideGroups(self.lasers, self.players, 'laser-player')
         self.collideGroups(self.players, self.players, 'player-player')
-        self.collideGroups(self.lasers, self.upgrades, 'player-upgrade')
+        self.collideGroups(self.players, self.upgrades, 'player-upgrade')
 
         pygame.display.flip()
 
@@ -284,6 +284,7 @@ class Game:
             for sprite in collisions:
                 if resultType == 'player-wall':
                     sprite.wallCollide()
+                    return True
                 if resultType == 'laser-wall':
                     sprite.wallCollide(collisions[sprite])
                     self.laserBounceSound.play()
@@ -299,19 +300,31 @@ class Game:
                     if sprite != collisions[sprite][0]:
                         sprite.wallCollide()
                         collisions[sprite][0].wallCollide()
+                        return True
                 if resultType == 'player-upgrade':
                     sprite.upgrade = collisions[sprite][0].color
                     sprite.upgradeTime = pygame.time.get_ticks()
                     collisions[sprite][0].kill()
+        return False
+        
+
         
     def reset(self):
        self.player1.reset()
        self.player2.reset()
-       #self.fixSpawn()
+       self.fixSpawn()
 
     def fixSpawn(self):
-        while self.collideGroups(self.players, self.walls, None) or self.collideGroups(self.players, self.players, None):
+        while self.collideGroups(self.players, self.walls, 'player-wall') or self.collideGroups(self.players, self.players, 'player-player'):
+            pygame.time.delay(1000)
+            if self.collideGroups(self.players, self.walls, 'player-wall'):
+                print('player-wall')
+            if self.collideGroups(self.players, self.players, 'player-player'):
+                print('player-player')
             for sprite in self.players.sprites():
-                sprite.coords = random.randint(0, self.size[0]),  random.randint(60, self.size[1])
+                sprite.prevCoords = sprite.coords = sprite.rect.center = random.randint(0, self.size[0]), random.randint(60, self.size[1])
+            self.players.draw(self.screen)
+            pygame.time.delay(1000)
+            
 
 Main()
