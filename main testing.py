@@ -317,21 +317,24 @@ class Game:
         self.upgrades.empty()
 
     def fixSpawn(self, group1, group2):
-        #print('fixSpawn Call')
         loop = True
         while loop:
             if group2 == self.walls:
                 print('Wally')
             if group2 == self.players:
                 print('playery')
-            collisions = pygame.sprite.groupcollide(group1, group2, False, False)
+            collisions = pygame.sprite.groupcollide(group1, group2, False, False, pygame.sprite.collide_mask)
             # print(collisions)
             for sprite in collisions:
-                if sprite != collisions[sprite][0] and collisions != {}:
+                if sprite != collisions[sprite][0]:
                     sprite.prevCoords = sprite.coords = sprite.rect.center = random.randint(0, self.size[0]), random.randint(60, self.size[1])
-                else:
-                    loop = False
+            if collisions == {} or sprite == collisions[sprite][0]:
+                print('exit loop')
+                loop = False
+            else:
+                print('did not exit loop')
     
+
     def spawnUpgrade(self, prob):
         n = random.randint(1, prob)
         if n == 1:
