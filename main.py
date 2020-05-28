@@ -35,7 +35,7 @@ def Main():
             if event.type == pygame.QUIT: sys.exit()
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, playerNumb, coords, speed, turnSpeed, image, mapSize, upgradeCool = 2000):
+    def __init__(self, playerNumb, coords, speed, turnSpeed, image, mapSize):
         pygame.sprite.Sprite.__init__(self)
         self.mapSize = mapSize
         self.speed = speed
@@ -48,10 +48,8 @@ class Player(pygame.sprite.Sprite):
         self.coords = self.prevCoords = self.rect.center = coords
         self.angle = self.prevAngle = 0
         self.mask = pygame.mask.from_surface(self.image)
-        self.upgradeCool = upgradeCool
         self.upgrade = None
         self.upgradeCounter = 0
-        self.upgradeTime = 0
 
     def update(self, keys):
         self.prevCoords = self.coords
@@ -88,7 +86,7 @@ class Player(pygame.sprite.Sprite):
 
         self.rect.center = self.coords
 
-        if self.upgradeCounter == 0:  #self.upgradeTime + self.upgradeCool < pygame.time.get_ticks():
+        if self.upgradeCounter == 0:  
             self.upgrade = None
 
     def rotate(self):
@@ -98,7 +96,7 @@ class Player(pygame.sprite.Sprite):
         self.rect.center = center
         self.mask = pygame.mask.from_surface(self.image)
 
-    def wallCollide(self):
+    def collide(self):
         self.coords = self.prevCoords
         self.angle = self.prevAngle
 
@@ -120,6 +118,7 @@ class Projectile(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.center = self.coords = coords
         self.spawned = False
+        self.subProj = None
         
     def update(self):
         self.prevCoords = self.coords
@@ -215,6 +214,7 @@ class Game:
         self.explosionSound = pygame.mixer.Sound('C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/explosionSound.wav')
         self.laserLength = laserLength
         self.cooldown = cooldown
+        self.lastShot = -cooldown
         self.screen = pygame.display.set_mode(size)
         self.player1 = Player(1, (0, 0), 0.6, 0.5, 'C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/red tank.png', size)
         self.player2 = Player(2, (0, 0), 0.6, 0.5, 'C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/blue tank.png', size)
@@ -224,7 +224,6 @@ class Game:
         self.fixPlayerSpawn()
         self.lasers = pygame.sprite.Group()
         self.upgrades = pygame.sprite.Group()
-        self.lastShot = -cooldown
         self.walls = pygame.sprite.Group(
             #Laver de ydre mure
             Wall((0, 60), True, self.size[0]), Wall((0, self.size[1]), False, self.size[1] - 60), 
@@ -236,13 +235,13 @@ class Game:
             Wall((420, 160), True), Wall((320, 160), False), Wall((420, 600), False, 90), Wall((320, 510), True), 
             Wall((500, 510), True, 120), Wall((500, 510), False), Wall((520, 200), True, 90)
             )
-        self.counter = 0
+        counter = 0
         for sprite in self.walls:
-            if self.counter <= 3:
+            if counter <= 3:
                 pass
             else:
                 self.walls.add(Wall((1300 - sprite.coords[0], 660 - sprite.coords[1]), sprite.orient, sprite.length, sprite.width, True))
-            self.counter += 1
+            counter += 1
 
         self.p1score = 0
         self.p2score = 0
@@ -294,7 +293,7 @@ class Game:
             collisions = pygame.sprite.groupcollide(group1, group2, False, False, pygame.sprite.collide_mask)
             for sprite in collisions:
                 if resultType == 'player-wall':
-                    sprite.wallCollide()
+                    sprite.collide()
                 if resultType == 'laser-wall':
                     sprite.wallCollide(collisions[sprite])
                     self.laserBounceSound.play()
@@ -308,12 +307,11 @@ class Game:
                     self.reset()
                 if resultType == 'player-player':
                     if sprite != collisions[sprite][0]:
-                        sprite.wallCollide()
-                        collisions[sprite][0].wallCollide()
+                        sprite.collide()
+                        collisions[sprite][0].collide()
                 if resultType == 'player-upgrade':
                     sprite.upgrade = 'passWall'
                     sprite.upgradeCounter = 3
-                    sprite.upgradeTime = pygame.time.get_ticks()
                     collisions[sprite][0].kill()
         
     def reset(self):
