@@ -35,12 +35,12 @@ def Main():
             if event.type == pygame.QUIT: sys.exit()
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, n, coords, speed, turnSpeed, image, mapSize, upgradeCool = 2000):
+    def __init__(self, playerNumb, coords, speed, turnSpeed, image, mapSize, upgradeCool = 2000):
         pygame.sprite.Sprite.__init__(self)
         self.mapSize = mapSize
         self.speed = speed
         self.turnSpeed = turnSpeed
-        self.n = n
+        self.playerNumb = playerNumb
         self.originalImage = pygame.transform.scale(pygame.image.load(image).convert(), (30, 30))
         self.originalImage.set_colorkey((0, 0, 0))
         self.image = self.originalImage
@@ -56,7 +56,7 @@ class Player(pygame.sprite.Sprite):
     def update(self, keys):
         self.prevCoords = self.coords
         self.prevAngle = self.angle
-        if self.n == 1:
+        if self.playerNumb == 1:
             if keys[pygame.K_t]:
                 #move forward
                 self.coords = updateCoords(self.speed, self.angle, self.coords)
@@ -72,7 +72,7 @@ class Player(pygame.sprite.Sprite):
                 self.angle %= 360
                 self.rotate()
                 
-        if self.n == 2:
+        if self.playerNumb == 2:
             if keys[pygame.K_UP]:
                 self.coords = updateCoords(self.speed, self.angle, self.coords)
             if keys[pygame.K_LEFT]:
@@ -358,8 +358,8 @@ class Game:
     
 
     def spawnUpgrade(self, prob):
-        n = random.randint(1, prob)
-        if n == 1:
+        numb = random.randint(1, prob)
+        if numb == 1:
             tempGroup = pygame.sprite.Group(Upgrade((255, 255, 0), (random.randint(0, self.size[0]), random.randint(60, self.size[1]))))
             self.fixUpgradeSpawn(tempGroup, self.walls)
             self.fixUpgradeSpawn(tempGroup, self.players)
