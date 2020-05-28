@@ -1,7 +1,9 @@
 import sys
 import pygame
 import math
+import random
 
+pygame.mixer.pre_init(16500, -16, 3, 2048)
 pygame.init()
 
 def updateCoords(speed, angle, coords, backwards = False):
@@ -24,13 +26,6 @@ def updateCoords(speed, angle, coords, backwards = False):
     coords = coords[0] + deltaCoords[0], coords[1] + deltaCoords[1]
     return coords
 
-def better_collide_mask(sprite1, sprite2):
-    if pygame.sprite.collide_mask(sprite1, sprite2) != None:
-        return True
-    else:
-        return False
-
-
 def Main():
     game = Game((1300, 600))
     while 1:
@@ -40,8 +35,9 @@ def Main():
             if event.type == pygame.QUIT: sys.exit()
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, n, coords, speed, turnSpeed, image):
+    def __init__(self, n, coords, speed, turnSpeed, image, mapSize, upgradeCool = 2000):
         pygame.sprite.Sprite.__init__(self)
+        self.mapSize = mapSize
         self.speed = speed
         self.turnSpeed = turnSpeed
         self.n = n
@@ -49,12 +45,13 @@ class Player(pygame.sprite.Sprite):
         self.originalImage.set_colorkey((0, 0, 0))
         self.image = self.originalImage
         self.rect = self.image.get_rect()
-        self.rect.center = self.coords = self.startCoords = coords
-        self.angle = 0
+        self.coords = self.prevCoords = self.rect.center = coords
+        self.angle = self.prevAngle = 0
         self.mask = pygame.mask.from_surface(self.image)
-        
-
-        #print(str(self.mask.count()))
+        self.upgradeCool = upgradeCool
+        self.upgrade = None
+        self.upgradeCounter = 0
+        self.upgradeTime = 0
 
     def update(self, keys):
         self.prevCoords = self.coords
@@ -90,9 +87,10 @@ class Player(pygame.sprite.Sprite):
                 self.rotate()
 
         self.rect.center = self.coords
-        #print(str(self.image.get_at((0, 0))) + ' ' + str(self.image.get_at((15, 15))))
-        
-        
+
+        if self.upgradeCounter == 0:
+            self.upgrade = None
+
     def rotate(self):
         center = self.rect.center
         self.image = pygame.transform.rotate(self.originalImage, self.angle)
@@ -105,9 +103,10 @@ class Player(pygame.sprite.Sprite):
         self.angle = self.prevAngle
 
     def reset(self):
-        self.coords = self.startCoords
+        self.coords = self.prevCoords = self.rect.center = random.randint(0, self.mapSize[0]), random.randint(60, self.mapSize[1])
         self.angle = 0
         self.rotate()
+        self.upgradeCounter = 0
 
 class Projectile(pygame.sprite.Sprite):
     def __init__(self, coords, radius, color, screen, length):
@@ -131,7 +130,7 @@ class Projectile(pygame.sprite.Sprite):
             self.subProj.update()
     
 class LeadProj(Projectile):
-    def __init__(self, coords, radius, color, screen, length, speed, angle, timer = 400):
+    def __init__(self, coords, radius, color, screen, length, speed, angle, player, timer = 1100):
         super().__init__(coords, radius, color, screen, length - 1)
         self.speed = speed
         self.angle = angle
@@ -139,6 +138,10 @@ class LeadProj(Projectile):
         self.mask = pygame.mask.from_surface(self.image)
         self.frames = 0
         self.timer = timer
+        self.player = player
+        self.projUpgrade = player.upgrade
+        if player.upgrade == 'passWall':
+            self.player.upgradeCounter -= 1
         
     def update(self):
         self.frames += 1
@@ -148,15 +151,17 @@ class LeadProj(Projectile):
             self.kill()
 
     def wallCollide(self, walls):
-        for wall in walls:
-            if wall.orient:
-                self.angle = 360 - self.angle
+        if self.projUpgrade != 'passWall':
+            for wall in walls:
+                if wall.orient:
+                    self.angle = 360 - self.angle
 
-            if not wall.orient:
-                if 0 < self.angle < 180:
-                    self.angle = 180 - self.angle
-                if 180 < self.angle < 360:
-                    self.angle = 360 - (self.angle - 180)
+                if not wall.orient:
+                    if 0 < self.angle < 180:
+                        self.angle = 180 - self.angle
+                    if 180 < self.angle < 360:
+                        self.angle = 360 - (self.angle - 180)
+        
                 
 class SubProj(Projectile):
     def __init__(self, coords, radius, color, screen, length, proj):
@@ -190,28 +195,35 @@ class Wall(pygame.sprite.Sprite):
             self.rect.topright = coords
         
         self.mask = pygame.mask.from_surface(self.image)
-        #print(str(self.mask.count()))
 
 class Upgrade(pygame.sprite.Sprite):
-    def __init__(self):
-        pass
-        
-
+    def __init__(self, color, coords):
+        pygame.sprite.Sprite.__init__(self)
+        self.color = color
+        self.image = pygame.Surface((10, 10))
+        self.image.fill(color)
+        self.image.set_colorkey((0, 0, 0))
+        self.mask = pygame.mask.from_surface(self.image)
+        self.rect = self.image.get_rect()
+        self.rect.center = coords
     
 class Game:
     def __init__(self, size, laserLength = 10, cooldown = 500):
         self.size = size
+        self.laserSound = pygame.mixer.Sound('C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/laserShotSound.wav')
+        self.laserBounceSound = pygame.mixer.Sound('C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/laserBounceSound.wav')
+        self.explosionSound = pygame.mixer.Sound('C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/explosionSound.wav')
         self.laserLength = laserLength
         self.cooldown = cooldown
         self.screen = pygame.display.set_mode(size)
-        self.player1StartPos = 60, 100
-        self.player2StartPos = 650, 300
-        self.player1 = Player(1, self.player1StartPos, 0.75, 0.5, 'C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/red tank.png')
-        self.player2 = Player(2, self.player2StartPos, 0.75, 0.5, 'C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/blue tank.png')
+        self.player1 = Player(1, (0, 0), 0.6, 0.5, 'C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/red tank.png', size)
+        self.player2 = Player(2, (0, 0), 0.6, 0.5, 'C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/blue tank.png', size)
         #self.player1 = Player(1, (650, 300), 0.5, 0.5, 'C:/Users/WaffleFlower/Desktop/Skole/Programmering/ExamProgram/red_tank_exp_v2.png')
         #self.player2 = Player(2, (300, 300), 0.5, 0.5, 'C:/Users/WaffleFlower/Desktop/Skole/Programmering/ExamProgram/blue_tank_exp.png')
         self.players = pygame.sprite.Group(self.player1, self.player2)
+        self.fixPlayerSpawn()
         self.lasers = pygame.sprite.Group()
+        self.upgrades = pygame.sprite.Group()
         self.lastShot = -cooldown
         self.walls = pygame.sprite.Group(
             #Laver de ydre mure
@@ -234,79 +246,114 @@ class Game:
 
         self.p1score = 0
         self.p2score = 0
-        self.font = pygame.font.Font(pygame.font.get_default_font(), 50)
-        #self.rects = [self.player1.rect, self.player2.rect]
+        self.scoreFont = pygame.font.Font(pygame.font.get_default_font(), 50)
+        self.upgradeFont = pygame.font.Font(pygame.font.get_default_font(), 10)
 
     def draw(self):
         self.screen.fill((0, 0, 0))
         self.players.draw(self.screen)
         self.walls.draw(self.screen)
         self.lasers.draw(self.screen)
+        self.upgrades.draw(self.screen)
 
-        self.screen.blit(self.font.render('Player 1: ' + str(self.p1score), False, (255, 0, 0)), (self.size[0] / 2 - 150, 1))
-        self.screen.blit(self.font.render('Player 2: ' + str(self.p2score), False, (0, 0, 255)), (self.size[0] / 2 + 150, 1))
-        #pygame.draw.lines(self.screen, (255, 255, 255), False, (self.player1.rect.bottomleft, (self.player1.rect.bottomright), (self.player1.rect.topright), (self.player1.rect.topleft), self.player1.rect.bottomleft)) 
+        self.screen.blit(self.scoreFont.render('Player 1: ' + str(self.p1score), False, (255, 0, 0)), (self.size[0] / 2 - 150, 1))
+        self.screen.blit(self.scoreFont.render('Player 2: ' + str(self.p2score), False, (0, 0, 255)), (self.size[0] / 2 + 150, 1))
         
-    
+        for player in self.players.sprites():
+            if player.upgrade:
+                self.screen.blit(self.upgradeFont.render('UPGRADED!', False, (255, 255, 0)), (player.rect.topleft[0] - 11, player.rect.topleft[1] - 11))
+
     def update(self):
         keys = pygame.key.get_pressed()
         self.players.update(keys)
         self.lasers.update()
-        #self.rects[0] = self.players.sprites()[0].rect
-        #self.rects[1] = self.players.sprites()[1].rect
         if pygame.time.get_ticks() > self.lastShot + self.cooldown:
             if keys[pygame.K_q]:
                 #coords, radius, color, screen, length, speed, angle
-                self.lasers.add(LeadProj(updateCoords(20, self.player1.angle, self.player1.coords), 2, (0, 255, 0), self.screen, self.laserLength, 1.25, self.player1.angle,))
-                #self.rects.append(self.laserGroups[-1].sprites()[0].rect)
+                self.lasers.add(LeadProj(updateCoords(20, self.player1.angle, self.player1.coords), 2, (0, 255, 0), self.screen, self.laserLength, 1.25, self.player1.angle, self.player1))
+                self.laserSound.play()
                 self.lastShot = pygame.time.get_ticks()
             if keys[pygame.K_m]:
-                self.lasers.add(LeadProj(updateCoords(20, self.player2.angle, self.player2.coords), 2, (0, 255, 0), self.screen, self.laserLength, 1.25, self.player2.angle,))
-                #self.rects.append(self.laserGroups[-1].sprites()[0].rect)
+                self.lasers.add(LeadProj(updateCoords(20, self.player2.angle, self.player2.coords), 2, (0, 255, 0), self.screen, self.laserLength, 1.25, self.player2.angle, self.player2))
+                self.laserSound.play()
                 self.lastShot = pygame.time.get_ticks()
 
         self.collideGroups(self.players, self.walls, 'player-wall')
         self.collideGroups(self.lasers, self.walls, 'laser-wall')
         self.collideGroups(self.lasers, self.players, 'laser-player')
         self.collideGroups(self.players, self.players, 'player-player')
+        self.collideGroups(self.players, self.upgrades, 'player-upgrade')
 
+        self.spawnUpgrade(1000)
         pygame.display.flip()
 
     def collideGroups(self, group1, group2, resultType):
         collisions = pygame.sprite.groupcollide(group1, group2, False, False)
         for sprite in collisions:
-            if collisions[sprite].__len__() > 0:
-                collisions = pygame.sprite.groupcollide(group1, group2, False, False, pygame.sprite.collide_mask)
-                for sprite in collisions:
-                    if collisions[sprite].__len__() > 0:
-                        if resultType == 'player-wall':
-                            sprite.wallCollide()
-                        if resultType == 'laser-wall':
-                            sprite.wallCollide(collisions[sprite])
-                        if resultType == 'laser-player':
-                            if collisions[sprite][0] == self.player1:
-                                self.p2score += 1
-                            if collisions[sprite][0] == self.player2:
-                                self.p1score += 1
-                            sprite.kill()
-                            self.reset()
-                        if resultType == 'player-player':
-                            if sprite != collisions[sprite][0]:
-                                sprite.wallCollide()
-                                collisions[sprite][0].wallCollide()
+            collisions = pygame.sprite.groupcollide(group1, group2, False, False, pygame.sprite.collide_mask)
+            for sprite in collisions:
+                if resultType == 'player-wall':
+                    sprite.wallCollide()
+                if resultType == 'laser-wall':
+                    sprite.wallCollide(collisions[sprite])
+                    self.laserBounceSound.play()
+                if resultType == 'laser-player':
+                    if collisions[sprite][0] == self.player1:
+                        self.p2score += 1
+                    if collisions[sprite][0] == self.player2:
+                        self.p1score += 1
+                    self.explosionSound.play()
+                    sprite.kill()
+                    self.reset()
+                if resultType == 'player-player':
+                    if sprite != collisions[sprite][0]:
+                        sprite.wallCollide()
+                        collisions[sprite][0].wallCollide()
+                if resultType == 'player-upgrade':
+                    sprite.upgrade = 'passWall'
+                    sprite.upgradeCounter = 3
+                    sprite.upgradeTime = pygame.time.get_ticks()
+                    collisions[sprite][0].kill()
         
     def reset(self):
-       self.player1.reset()
-       self.player2.reset()
+        self.player1.reset()
+        self.player2.reset()
+        self.fixPlayerSpawn()
+        self.upgrades.empty()
 
-        # collisions = pygame.sprite.groupcollide(self.lasers, self.walls, False, False)
-        # for leadProj in collisions:
-        #     if collisions[leadProj].__len__() > 0:
-        #         collisions = pygame.sprite.groupcollide(self.lasers, self.walls, False, False, pygame.sprite.collide_mask)
-        #         for leadProj in collisions:
-        #             if collisions[leadProj].__len__() > 0:
-        #                 leadProj.wallCollide(collisions[leadProj])
-                        
-        
-        #pygame.display.update(self.rects)    
+    def fixPlayerSpawn(self):
+        spawnCoords = [(50, 105), (90, 400), (150, 550), (160, 90), (400, 200), (550, 450), (700, 410), 
+            (1000, 400), (1120, 110), (1150, 570), (1200, 110)]
+        loop = True
+        while loop:
+            for firstPlayer in self.players.sprites():
+                numb = random.randint(0, len(spawnCoords) - 1)
+                firstPlayer.prevCoords = firstPlayer.coords = firstPlayer.rect.center = spawnCoords[numb]
+                for secPlayer in self.players.sprites():
+                    if firstPlayer != secPlayer:
+                        if firstPlayer.rect.center == secPlayer.rect.center:
+                            numb = random.randint(0, len(spawnCoords) - 1)
+                            firstPlayer.prevCoords = firstPlayer.coords = firstPlayer.rect.center = spawnCoords[numb]
+                        else:
+                            loop = False
+
+    def fixUpgradeSpawn(self, group1, group2):
+        loop = True
+        while loop:
+            collisions = pygame.sprite.groupcollide(group1, group2, False, False, pygame.sprite.collide_mask)
+            for sprite in collisions:
+                if sprite != collisions[sprite][0]:
+                    sprite.prevCoords = sprite.coords = sprite.rect.center = random.randint(0, self.size[0]), random.randint(60, self.size[1])
+            if collisions == {} or sprite == collisions[sprite][0]:
+                loop = False
+    
+
+    def spawnUpgrade(self, prob):
+        n = random.randint(1, prob)
+        if n == 1:
+            tempGroup = pygame.sprite.Group(Upgrade((255, 255, 0), (random.randint(0, self.size[0]), random.randint(60, self.size[1]))))
+            self.fixUpgradeSpawn(tempGroup, self.walls)
+            self.fixUpgradeSpawn(tempGroup, self.players)
+            self.upgrades.add(tempGroup.sprites()[-1])
+
 Main()
