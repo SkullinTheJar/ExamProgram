@@ -8,16 +8,16 @@ pygame.init()
 
 def updateCoords(speed, angle, coords, backwards = False):
     angle %= 360
-    if 0 <= angle <= 90:
+    if 0 <= angle < 90:
         deltaCoords = [speed * math.cos(math.radians(angle - 90*math.floor(angle/90))), -speed * math.sin(math.radians(angle - 90*math.floor(angle/90)))]
 
-    if 90 < angle <= 180:
+    if 90 <= angle < 180:
         deltaCoords = [-speed * math.sin(math.radians(angle - 90*math.floor(angle/90))), -speed * math.cos(math.radians(angle - 90*math.floor(angle/90)))] 
     
-    if 180 < angle <= 270:
+    if 180 <= angle < 270:
         deltaCoords = [-speed * math.cos(math.radians(angle - 90*math.floor(angle/90))), speed * math.sin(math.radians(angle - 90*math.floor(angle/90)))] 
     
-    if 270 < angle <= 360:
+    if 270 <= angle <= 360:
         deltaCoords = [speed * math.sin(math.radians(angle - 90*math.floor(angle/90))), speed * math.cos(math.radians(angle - 90*math.floor(angle/90)))]
 
     if backwards:
@@ -149,17 +149,19 @@ class LeadProj(Projectile):
         if self.frames == self.timer:
             self.kill()
 
-    def wallCollide(self, walls):
+    def wallCollide(self, wall):
         if self.projUpgrade != 'passWall':
-            for wall in walls:
-                if wall.orient:
-                    self.angle = 360 - self.angle
+            if wall.orient:
+                self.angle = 360 - self.angle
+                print('dis is also wron')
 
-                if not wall.orient:
-                    if 0 < self.angle < 180:
-                        self.angle = 180 - self.angle
-                    if 180 < self.angle < 360:
-                        self.angle = 360 - (self.angle - 180)
+            if not wall.orient:
+                print(self.angle)
+                if 0 <= self.angle <= 180:
+                    self.angle = 180 - self.angle
+                elif 180 < self.angle <= 360:
+                    print('dis is wron')
+                    self.angle = 360 - (self.angle - 180)
         
                 
 class SubProj(Projectile):
@@ -293,7 +295,7 @@ class Game:
                 if resultType == 'player-wall':
                     sprite.collide()
                 if resultType == 'laser-wall':
-                    sprite.wallCollide(collisions[sprite])
+                    sprite.wallCollide(collisions[sprite][0])
                     self.laserBounceSound.play()
                 if resultType == 'laser-player':
                     if collisions[sprite][0] == self.player1:
