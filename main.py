@@ -198,7 +198,7 @@ class Wall(pygame.sprite.Sprite):
         self.mask = pygame.mask.from_surface(self.image)
 
 class Upgrade(pygame.sprite.Sprite):
-    def __init__(self, color, coords):
+    def __init__(self, color, coords, upType):
         pygame.sprite.Sprite.__init__(self)
         self.color = color
         self.image = pygame.Surface((10, 10))
@@ -207,6 +207,7 @@ class Upgrade(pygame.sprite.Sprite):
         self.mask = pygame.mask.from_surface(self.image)
         self.rect = self.image.get_rect()
         self.rect.center = coords
+        self.upType = upType
     
 class Game:
     def __init__(self, size, laserLength = 10, cooldown = 500):
@@ -310,7 +311,7 @@ class Game:
                         sprite.collide()
                         collisions[sprite][0].collide()
                 if resultType == 'player-upgrade':
-                    sprite.upgrade = 'passWall'
+                    sprite.upgrade = collisions[sprite][0].upType
                     sprite.upgradeCounter = 3
                     collisions[sprite][0].kill()
         
@@ -319,6 +320,7 @@ class Game:
         self.player2.reset()
         self.fixPlayerSpawn()
         self.upgrades.empty()
+        self.lasers.empty()
 
     def fixPlayerSpawn(self):
         spawnCoords = [(50, 105), (90, 400), (150, 550), (160, 90), (400, 200), (550, 450), (700, 410), 
@@ -350,7 +352,7 @@ class Game:
     def spawnUpgrade(self, prob):
         numb = random.randint(1, prob)
         if numb == 1:
-            tempGroup = pygame.sprite.Group(Upgrade((255, 255, 0), (random.randint(0, self.size[0]), random.randint(60, self.size[1]))))
+            tempGroup = pygame.sprite.Group(Upgrade((255, 255, 0), 'passWall', (random.randint(0, self.size[0]), random.randint(60, self.size[1]))))
             self.fixUpgradeSpawn(tempGroup, self.walls)
             self.fixUpgradeSpawn(tempGroup, self.players)
             self.upgrades.add(tempGroup.sprites()[-1])
