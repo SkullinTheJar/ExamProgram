@@ -8,21 +8,9 @@ pygame.init()
 
 def updateCoords(speed, angle, coords, backwards = False):
     angle %= 360
-    if 0 <= angle < 90:
-        deltaCoords = [speed * math.cos(math.radians(angle - 90*math.floor(angle/90))), -speed * math.sin(math.radians(angle - 90*math.floor(angle/90)))]
-
-    if 90 <= angle < 180:
-        deltaCoords = [-speed * math.sin(math.radians(angle - 90*math.floor(angle/90))), -speed * math.cos(math.radians(angle - 90*math.floor(angle/90)))] 
-    
-    if 180 <= angle < 270:
-        deltaCoords = [-speed * math.cos(math.radians(angle - 90*math.floor(angle/90))), speed * math.sin(math.radians(angle - 90*math.floor(angle/90)))] 
-    
-    if 270 <= angle <= 360:
-        deltaCoords = [speed * math.sin(math.radians(angle - 90*math.floor(angle/90))), speed * math.cos(math.radians(angle - 90*math.floor(angle/90)))]
-
+    deltaCoords = [speed * math.cos(math.radians(angle)), -speed * math.sin(math.radians(angle))]
     if backwards:
         deltaCoords = -deltaCoords[0], -deltaCoords[1]
-    
     coords = coords[0] + deltaCoords[0], coords[1] + deltaCoords[1]
     return coords
 
@@ -56,19 +44,17 @@ class Player(pygame.sprite.Sprite):
         self.prevAngle = self.angle
         if self.playerNumb == 1:
             if keys[pygame.K_t]:
-                #move forward
                 self.coords = updateCoords(self.speed, self.angle, self.coords)
             if keys[pygame.K_f]:
                 self.angle += self.turnSpeed
                 self.angle %= 360
                 self.rotate()
-            if keys[pygame.K_g]:
-                self.coords = updateCoords(self.speed, self.angle, self.coords, True)
-                #move backward
             if keys[pygame.K_h]:
                 self.angle -= self.turnSpeed
                 self.angle %= 360
                 self.rotate()
+            if keys[pygame.K_g]:
+                self.coords = updateCoords(self.speed, self.angle, self.coords, True)
                 
         if self.playerNumb == 2:
             if keys[pygame.K_UP]:
@@ -77,12 +63,12 @@ class Player(pygame.sprite.Sprite):
                 self.angle += self.turnSpeed
                 self.angle %= 360
                 self.rotate()
-            if keys[pygame.K_DOWN]:
-                self.coords = updateCoords(self.speed, self.angle, self.coords, True)
             if keys[pygame.K_RIGHT]:
                 self.angle -= self.turnSpeed
                 self.angle %= 360
                 self.rotate()
+            if keys[pygame.K_DOWN]:
+                self.coords = updateCoords(self.speed, self.angle, self.coords, True)
 
         self.rect.center = self.coords
 
@@ -206,6 +192,7 @@ class Upgrade(pygame.sprite.Sprite):
         self.image.set_colorkey((0, 0, 0))
         self.mask = pygame.mask.from_surface(self.image)
         self.rect = self.image.get_rect()
+        print(coords)
         self.rect.center = coords
         self.upType = upType
     
@@ -352,7 +339,7 @@ class Game:
     def spawnUpgrade(self, prob):
         numb = random.randint(1, prob)
         if numb == 1:
-            tempGroup = pygame.sprite.Group(Upgrade((255, 255, 0), 'passWall', (random.randint(0, self.size[0]), random.randint(60, self.size[1]))))
+            tempGroup = pygame.sprite.Group(Upgrade((255, 255, 0), (random.randint(0, self.size[0]), random.randint(60, self.size[1])), 'passWall'))
             self.fixUpgradeSpawn(tempGroup, self.walls)
             self.fixUpgradeSpawn(tempGroup, self.players)
             self.upgrades.add(tempGroup.sprites()[-1])
