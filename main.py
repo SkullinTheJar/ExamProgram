@@ -275,42 +275,41 @@ class Game:
                 self.laserSound.play()
                 self.lastShot = pygame.time.get_ticks()
 
-        self.collideGroups(self.players, self.walls, 'player-wall')
-        self.collideGroups(self.lasers, self.walls, 'laser-wall')
-        self.collideGroups(self.lasers, self.players, 'laser-player')
-        self.collideGroups(self.players, self.players, 'player-player')
-        self.collideGroups(self.players, self.upgrades, 'player-upgrade')
+        self.collideGroups(self.players, self.walls)
+        self.collideGroups(self.lasers, self.walls)
+        self.collideGroups(self.lasers, self.players)
+        self.collideGroups(self.players, self.players)
+        self.collideGroups(self.players, self.upgrades)
 
-        self.spawnUpgrade(10000)
+        self.spawnUpgrade(1)
         pygame.display.flip()
 
-    def collideGroups(self, group1, group2, resultType):
+    def collideGroups(self, group1, group2):
         collisions = pygame.sprite.groupcollide(group1, group2, False, False)
         for sprite in collisions:
             collisions = pygame.sprite.groupcollide(group1, group2, False, False, pygame.sprite.collide_mask)
             for sprite in collisions:
-                if resultType == 'player-wall':
+                if group1 == self.players and group2 == self.walls:
                     sprite.collide()
-                if resultType == 'laser-wall':
+                if group1 == self.lasers and group2 == self.walls:
                     sprite.wallCollide(collisions[sprite][0])
                     while pygame.sprite.collide_rect(sprite, collisions[sprite][0]):
                         sprite.update()
                     self.laserBounceSound.play()
-                if resultType == 'laser-player':
+                if group1 == self.lasers and group2 == self.players:
                     if collisions[sprite][0] == self.player1:
                         self.p2score += 1
                     if collisions[sprite][0] == self.player2:
                         self.p1score += 1
                     self.explosionSound.play()
-                    sprite.kill()
                     self.reset()
-                if resultType == 'player-player':
+                if group1 == self.players and group2 == self.players:
                     if sprite != collisions[sprite][0]:
                         sprite.collide()
                         collisions[sprite][0].collide()
-                if resultType == 'player-upgrade':
+                if group1 == self.players and group2 == self.upgrades:
                     sprite.upgrade = collisions[sprite][0].upType
-                    sprite.upgradeCounter = 3
+                    sprite.upgradeCounter += 3
                     collisions[sprite][0].kill()
                     self.upgradeSound.play()
         
@@ -322,38 +321,25 @@ class Game:
         self.lasers.empty()
 
     def fixPlayerSpawn(self):
-        spawnCoords = [(50, 105), (90, 400), (150, 550), (160, 90), (400, 200), (550, 450), (700, 410), 
-            (1000, 400), (1120, 110), (1150, 570), (1200, 110)]
-        loop = True
-        while loop:
-            for firstPlayer in self.players:
-                numb = random.randint(0, len(spawnCoords) - 1)
-                firstPlayer.prevCoords = firstPlayer.coords = firstPlayer.rect.center = spawnCoords[numb]
-                for secPlayer in self.players:
-                    if firstPlayer != secPlayer:
-                        if firstPlayer.rect.center == secPlayer.rect.center:
-                            numb = random.randint(0, len(spawnCoords) - 1)
-                            firstPlayer.prevCoords = firstPlayer.coords = firstPlayer.rect.center = spawnCoords[numb]
-                        else:
-                            loop = False
+        spawnCoords = [(50, 105), (90, 400), (150, 550), (160, 90), (400, 200), (550, 450), (700, 410), (1000, 400), (1120, 110), (1150, 570), (1200, 110)]
+        self.player1.prevCoords = self.player1.coords = self.player1.rect.center = random.choice(spawnCoords)
+        self.player2.prevCoords = self.player2.coords = self.player2.rect.center = random.choice(spawnCoords)
+        while self.player1.coords == self.player2.coords:
+            self.player1.prevCoords = self.player1.coords = self.player1.rect.center = random.choice(spawnCoords)
 
-    def fixUpgradeSpawn(self, group1, group2):
-        loop = True
-        while loop:
-            collisions = pygame.sprite.groupcollide(group1, group2, False, False, pygame.sprite.collide_mask)
-            for sprite in collisions:
-                if sprite != collisions[sprite][0]:
-                    sprite.prevCoords = sprite.coords = sprite.rect.center = random.randint(0, self.size[0]), random.randint(60, self.size[1])
-            if collisions == {} or sprite == collisions[sprite][0]:
-                loop = False
+    def fixUpgradeSpawn(self, upgrade, group):
+        while True:
+            collisions = pygame.sprite.spritecollide(upgrade, group, False)
+            if collisions != []:
+                upgrade.prevCoords = upgrade.coords = upgrade.rect.center = random.randint(0, self.size[0]), random.randint(60, self.size[1])
+            else:
+                break
     
 
     def spawnUpgrade(self, prob):
-        numb = random.randint(1, prob)
-        if numb == 1:
-            tempGroup = pygame.sprite.Group(Upgrade((255, 255, 0), (random.randint(0, self.size[0]), random.randint(60, self.size[1])), 'passWall'))
-            self.fixUpgradeSpawn(tempGroup, self.walls)
-            self.fixUpgradeSpawn(tempGroup, self.players)
-            self.upgrades.add(tempGroup.sprites()[-1])
+        if random.randint(1, prob) == 1:
+            self.upgrades.add(Upgrade((255, 255, 0), (random.randint(0, self.size[0]), random.randint(60, self.size[1])), 'passWall'))
+            self.fixUpgradeSpawn(self.upgrades.sprites()[-1], self.walls)
+            self.fixUpgradeSpawn(self.upgrades.sprites()[-1], self.players)
 
 Main()
