@@ -206,6 +206,7 @@ class Upgrade(pygame.sprite.Sprite):
     
 class Game:
     def __init__(self, size, laserLength = 15, cooldown = 500):
+        pygame.display.set_caption('LazerTankz: The Game')
         self.size = size
         self.laserSound = pygame.mixer.Sound('C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/laserShotSound.wav')
         self.laserBounceSound = pygame.mixer.Sound('C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/laserBounceSound.wav')
@@ -281,7 +282,7 @@ class Game:
         self.collideGroups(self.players, self.players)
         self.collideGroups(self.players, self.upgrades)
 
-        self.spawnUpgrade(1)
+        self.spawnUpgrade(10000)
         pygame.display.flip()
 
     def collideGroups(self, group1, group2):
