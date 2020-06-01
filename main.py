@@ -46,25 +46,38 @@ class Player(pygame.sprite.Sprite):
             if keys[pygame.K_t]:
                 self.coords = updateCoords(self.speed, self.angle, self.coords)
             if keys[pygame.K_f]:
-                self.angle += self.turnSpeed
+                if keys[pygame.K_g]:
+                    self.angle -= self.turnSpeed
+                else:
+                    self.angle += self.turnSpeed
                 self.angle %= 360
                 self.rotate()
             if keys[pygame.K_h]:
-                self.angle -= self.turnSpeed
+                if keys[pygame.K_g]:
+                    self.angle += self.turnSpeed
+                else:
+                    self.angle -= self.turnSpeed
                 self.angle %= 360
                 self.rotate()
             if keys[pygame.K_g]:
                 self.coords = updateCoords(self.speed, self.angle, self.coords, True)
                 
+                
         if self.playerNumb == 2:
             if keys[pygame.K_UP]:
                 self.coords = updateCoords(self.speed, self.angle, self.coords)
             if keys[pygame.K_LEFT]:
-                self.angle += self.turnSpeed
+                if keys[pygame.K_DOWN]:
+                    self.angle -= self.turnSpeed
+                else:
+                    self.angle += self.turnSpeed
                 self.angle %= 360
                 self.rotate()
             if keys[pygame.K_RIGHT]:
-                self.angle -= self.turnSpeed
+                if keys[pygame.K_DOWN]:
+                    self.angle += self.turnSpeed
+                else:
+                    self.angle -= self.turnSpeed
                 self.angle %= 360
                 self.rotate()
             if keys[pygame.K_DOWN]:
@@ -140,14 +153,11 @@ class LeadProj(Projectile):
         if self.projUpgrade != 'passWall':
             if wall.orient:
                 self.angle = 360 - self.angle
-                print('dis is also wron')
 
             if not wall.orient:
-                print(self.angle)
                 if 0 <= self.angle <= 180:
                     self.angle = 180 - self.angle
                 elif 180 < self.angle <= 360:
-                    print('dis is wron')
                     self.angle = 360 - (self.angle - 180)
         
                 
@@ -195,19 +205,20 @@ class Upgrade(pygame.sprite.Sprite):
         self.upType = upType
     
 class Game:
-    def __init__(self, size, laserLength = 20, cooldown = 500):
+    def __init__(self, size, laserLength = 15, cooldown = 500):
         self.size = size
-        #self.laserSound = pygame.mixer.Sound('C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/laserShotSound.wav')
-        #self.laserBounceSound = pygame.mixer.Sound('C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/laserBounceSound.wav')
-        #self.explosionSound = pygame.mixer.Sound('C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/explosionSound.wav')
+        self.laserSound = pygame.mixer.Sound('C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/laserShotSound.wav')
+        self.laserBounceSound = pygame.mixer.Sound('C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/laserBounceSound.wav')
+        self.explosionSound = pygame.mixer.Sound('C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/explosionSound.wav')
+        self.upgradeSound = pygame.mixer.Sound('C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/upgradeSound.wav')
         self.laserLength = laserLength
         self.cooldown = cooldown
         self.lastShot = -cooldown
         self.screen = pygame.display.set_mode(size)
-        #self.player1 = Player(1, (0, 0), 0.6, 0.5, 'C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/red tank.png', size)
-        #self.player2 = Player(2, (0, 0), 0.6, 0.5, 'C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/blue tank.png', size)
-        self.player1 = Player(1, (0, 0), 0.25, 0.25, 'C:/Users/WaffleFlower/Desktop/Skole/Programmering/ExamProgram/red_tank_exp_v2.png', size)
-        self.player2 = Player(2, (0, 0), 0.25, 0.25, 'C:/Users/WaffleFlower/Desktop/Skole/Programmering/ExamProgram/blue_tank_exp.png', size)
+        self.player1 = Player(1, (0, 0), 0.6, 0.5, 'C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/red tank.png', size)
+        self.player2 = Player(2, (0, 0), 0.6, 0.5, 'C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/blue tank.png', size)
+        # self.player1 = Player(1, (0, 0), 0.25, 0.25, 'C:/Users/WaffleFlower/Desktop/Skole/Programmering/ExamProgram/red_tank_exp_v2.png', size)
+        # self.player2 = Player(2, (0, 0), 0.25, 0.25, 'C:/Users/WaffleFlower/Desktop/Skole/Programmering/ExamProgram/blue_tank_exp.png', size)
         self.players = pygame.sprite.Group(self.player1, self.player2)
         self.fixPlayerSpawn()
         self.lasers = pygame.sprite.Group()
@@ -257,11 +268,11 @@ class Game:
         if pygame.time.get_ticks() > self.lastShot + self.cooldown:
             if keys[pygame.K_q]:
                 self.lasers.add(LeadProj(updateCoords(20, self.player1.angle, self.player1.coords), 2, (0, 255, 0), self.screen, self.laserLength, 1.25, self.player1.angle, self.player1))
-                #self.laserSound.play()
+                self.laserSound.play()
                 self.lastShot = pygame.time.get_ticks()
             if keys[pygame.K_m]:
                 self.lasers.add(LeadProj(updateCoords(20, self.player2.angle, self.player2.coords), 2, (0, 255, 0), self.screen, self.laserLength, 1.25, self.player2.angle, self.player2))
-                #self.laserSound.play()
+                self.laserSound.play()
                 self.lastShot = pygame.time.get_ticks()
 
         self.collideGroups(self.players, self.walls, 'player-wall')
@@ -282,13 +293,15 @@ class Game:
                     sprite.collide()
                 if resultType == 'laser-wall':
                     sprite.wallCollide(collisions[sprite][0])
-                    #self.laserBounceSound.play()
+                    while pygame.sprite.collide_rect(sprite, collisions[sprite][0]):
+                        sprite.update()
+                    self.laserBounceSound.play()
                 if resultType == 'laser-player':
                     if collisions[sprite][0] == self.player1:
                         self.p2score += 1
                     if collisions[sprite][0] == self.player2:
                         self.p1score += 1
-                    #self.explosionSound.play()
+                    self.explosionSound.play()
                     sprite.kill()
                     self.reset()
                 if resultType == 'player-player':
@@ -299,6 +312,7 @@ class Game:
                     sprite.upgrade = collisions[sprite][0].upType
                     sprite.upgradeCounter = 3
                     collisions[sprite][0].kill()
+                    self.upgradeSound.play()
         
     def reset(self):
         self.player1.reset()
