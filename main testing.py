@@ -207,18 +207,22 @@ class Upgrade(pygame.sprite.Sprite):
 class Game:
     def __init__(self, size, laserLength = 10, cooldown = 500):
         self.size = size
-        self.laserSound = pygame.mixer.Sound('C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/laserShotSound.wav')
-        self.laserBounceSound = pygame.mixer.Sound('C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/laserBounceSound.wav')
-        self.explosionSound = pygame.mixer.Sound('C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/explosionSound.wav')
-        self.upgradeSound = pygame.mixer.Sound('C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/upgradeSound.wav')
+        #self.laserSound = pygame.mixer.Sound('C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/laserShotSound.wav')
+        #self.laserBounceSound = pygame.mixer.Sound('C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/laserBounceSound.wav')
+        #self.explosionSound = pygame.mixer.Sound('C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/explosionSound.wav')
+        #self.upgradeSound = pygame.mixer.Sound('C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/upgradeSound.wav')
+        self.laserSound = pygame.mixer.Sound('C:/Users/WaffleFlower/Desktop/Skole/Programmering/ExamProgram/laserShotSound.wav')
+        self.laserBounceSound = pygame.mixer.Sound('C:/Users/WaffleFlower/Desktop/Skole/Programmering/ExamProgram/laserBounceSound.wav')
+        self.explosionSound = pygame.mixer.Sound('C:/Users/WaffleFlower/Desktop/Skole/Programmering/ExamProgram/explosionSound.wav')
+        self.upgradeSound = pygame.mixer.Sound('C:/Users/WaffleFlower/Desktop/Skole/Programmering/ExamProgram/upgradeSound.wav')
         self.laserLength = laserLength
         self.cooldown = cooldown
         self.lastShot = -cooldown
         self.screen = pygame.display.set_mode(size)
-        self.player1 = Player(1, (0, 0), 1, 1, 'C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/red tank.png', size)
-        self.player2 = Player(2, (0, 0), 1, 1, 'C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/blue tank.png', size)
-        # self.player1 = Player(1, (0, 0), 0.25, 0.25, 'C:/Users/WaffleFlower/Desktop/Skole/Programmering/ExamProgram/red_tank_exp_v2.png', size)
-        # self.player2 = Player(2, (0, 0), 0.25, 0.25, 'C:/Users/WaffleFlower/Desktop/Skole/Programmering/ExamProgram/blue_tank_exp.png', size)
+        #self.player1 = Player(1, (0, 0), 1, 1, 'C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/red tank.png', size)
+        #self.player2 = Player(2, (0, 0), 1, 1, 'C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/blue tank.png', size)
+        self.player1 = Player(1, (0, 0), 0.25, 0.25, 'C:/Users/WaffleFlower/Desktop/Skole/Programmering/ExamProgram/red tank.png', size)
+        self.player2 = Player(2, (0, 0), 0.25, 0.25, 'C:/Users/WaffleFlower/Desktop/Skole/Programmering/ExamProgram/blue tank.png', size)
         self.players = pygame.sprite.Group(self.player1, self.player2)
         self.fixPlayerSpawn()
         self.lasers = pygame.sprite.Group()
@@ -253,7 +257,7 @@ class Game:
         self.players.draw(self.screen)
         self.walls.draw(self.screen)
         self.lasers.draw(self.screen)
-        self.upgrades.draw(self.screen)
+        self.upgrades.draw(self.screen)  
 
         self.screen.blit(self.scoreFont.render('Player 1: ' + str(self.p1score), False, (255, 0, 0)), (self.size[0] / 2 - 150, 1))
         self.screen.blit(self.scoreFont.render('Player 2: ' + str(self.p2score), False, (0, 0, 255)), (self.size[0] / 2 + 150, 1))
