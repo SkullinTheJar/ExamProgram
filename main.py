@@ -205,7 +205,7 @@ class Upgrade(pygame.sprite.Sprite):
         self.upType = upType
     
 class Game:
-    def __init__(self, size, laserLength = 15, cooldown = 500):
+    def __init__(self, size, laserLength = 10, cooldown = 500):
         pygame.display.set_caption('LazerTankz: The Game')
         self.size = size
         self.laserSound = pygame.mixer.Sound('C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/laserShotSound.wav')
@@ -216,8 +216,8 @@ class Game:
         self.cooldown = cooldown
         self.lastShot = -cooldown
         self.screen = pygame.display.set_mode(size)
-        self.player1 = Player(1, (0, 0), 0.6, 0.5, 'C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/red tank.png', size)
-        self.player2 = Player(2, (0, 0), 0.6, 0.5, 'C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/blue tank.png', size)
+        self.player1 = Player(1, (0, 0), 1, 1, 'C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/red tank.png', size)
+        self.player2 = Player(2, (0, 0), 1.25, 1.25, 'C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/blue tank.png', size)
         # self.player1 = Player(1, (0, 0), 0.25, 0.25, 'C:/Users/WaffleFlower/Desktop/Skole/Programmering/ExamProgram/red_tank_exp_v2.png', size)
         # self.player2 = Player(2, (0, 0), 0.25, 0.25, 'C:/Users/WaffleFlower/Desktop/Skole/Programmering/ExamProgram/blue_tank_exp.png', size)
         self.players = pygame.sprite.Group(self.player1, self.player2)
@@ -247,6 +247,7 @@ class Game:
         self.p2score = 0
         self.scoreFont = pygame.font.Font(pygame.font.get_default_font(), 50)
         self.upgradeFont = pygame.font.Font(pygame.font.get_default_font(), 10)
+        self.clock = pygame.time.Clock()
 
     def draw(self):
         self.screen.fill((0, 0, 0))
@@ -263,16 +264,17 @@ class Game:
                 self.screen.blit(self.upgradeFont.render('UPGRADED!', False, (255, 255, 0)), (player.rect.topleft[0] - 11, player.rect.topleft[1] - 11))
 
     def update(self):
+        self.clock.tick(120)
         keys = pygame.key.get_pressed()
         self.players.update(keys)
         self.lasers.update()
         if pygame.time.get_ticks() > self.lastShot + self.cooldown:
             if keys[pygame.K_q]:
-                self.lasers.add(LeadProj(updateCoords(20, self.player1.angle, self.player1.coords), 2, (0, 255, 0), self.screen, self.laserLength, 1.25, self.player1.angle, self.player1))
+                self.lasers.add(LeadProj(updateCoords(18, self.player1.angle, self.player1.coords), 2, (0, 255, 0), self.screen, self.laserLength, 3.25, self.player1.angle, self.player1))
                 self.laserSound.play()
                 self.lastShot = pygame.time.get_ticks()
             if keys[pygame.K_m]:
-                self.lasers.add(LeadProj(updateCoords(20, self.player2.angle, self.player2.coords), 2, (0, 255, 0), self.screen, self.laserLength, 1.25, self.player2.angle, self.player2))
+                self.lasers.add(LeadProj(updateCoords(18, self.player2.angle, self.player2.coords), 2, (0, 255, 0), self.screen, self.laserLength, 3.25, self.player2.angle, self.player2))
                 self.laserSound.play()
                 self.lastShot = pygame.time.get_ticks()
 

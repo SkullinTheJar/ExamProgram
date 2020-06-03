@@ -129,7 +129,7 @@ class Projectile(pygame.sprite.Sprite):
             self.subProj.update()
     
 class LeadProj(Projectile):
-    def __init__(self, coords, radius, color, screen, length, speed, angle, player, timer = 600):
+    def __init__(self, coords, radius, color, screen, length, speed, angle, player, timer = 1100):
         super().__init__(coords, radius, color, screen, length - 1)
         self.speed = speed
         self.angle = angle
@@ -206,23 +206,20 @@ class Upgrade(pygame.sprite.Sprite):
     
 class Game:
     def __init__(self, size, laserLength = 10, cooldown = 500):
+        pygame.display.set_caption('LazerTankz: The Game')
         self.size = size
-        #self.laserSound = pygame.mixer.Sound('C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/laserShotSound.wav')
-        #self.laserBounceSound = pygame.mixer.Sound('C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/laserBounceSound.wav')
-        #self.explosionSound = pygame.mixer.Sound('C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/explosionSound.wav')
-        #self.upgradeSound = pygame.mixer.Sound('C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/upgradeSound.wav')
-        self.laserSound = pygame.mixer.Sound('C:/Users/WaffleFlower/Desktop/Skole/Programmering/ExamProgram/laserShotSound.wav')
-        self.laserBounceSound = pygame.mixer.Sound('C:/Users/WaffleFlower/Desktop/Skole/Programmering/ExamProgram/laserBounceSound.wav')
-        self.explosionSound = pygame.mixer.Sound('C:/Users/WaffleFlower/Desktop/Skole/Programmering/ExamProgram/explosionSound.wav')
-        self.upgradeSound = pygame.mixer.Sound('C:/Users/WaffleFlower/Desktop/Skole/Programmering/ExamProgram/upgradeSound.wav')
+        self.laserSound = pygame.mixer.Sound('C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/laserShotSound.wav')
+        self.laserBounceSound = pygame.mixer.Sound('C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/laserBounceSound.wav')
+        self.explosionSound = pygame.mixer.Sound('C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/explosionSound.wav')
+        self.upgradeSound = pygame.mixer.Sound('C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/upgradeSound.wav')
         self.laserLength = laserLength
         self.cooldown = cooldown
         self.lastShot = -cooldown
         self.screen = pygame.display.set_mode(size)
-        #self.player1 = Player(1, (0, 0), 1, 1, 'C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/red tank.png', size)
-        #self.player2 = Player(2, (0, 0), 1, 1, 'C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/blue tank.png', size)
-        self.player1 = Player(1, (0, 0), 0.25, 0.25, 'C:/Users/WaffleFlower/Desktop/Skole/Programmering/ExamProgram/red tank.png', size)
-        self.player2 = Player(2, (0, 0), 0.25, 0.25, 'C:/Users/WaffleFlower/Desktop/Skole/Programmering/ExamProgram/blue tank.png', size)
+        self.player1 = Player(1, (0, 0), 1, 1, 'C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/red tank.png', size)
+        self.player2 = Player(2, (0, 0), 1.25, 1.25, 'C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/blue tank.png', size)
+        # self.player1 = Player(1, (0, 0), 0.25, 0.25, 'C:/Users/WaffleFlower/Desktop/Skole/Programmering/ExamProgram/red_tank_exp_v2.png', size)
+        # self.player2 = Player(2, (0, 0), 0.25, 0.25, 'C:/Users/WaffleFlower/Desktop/Skole/Programmering/ExamProgram/blue_tank_exp.png', size)
         self.players = pygame.sprite.Group(self.player1, self.player2)
         self.fixPlayerSpawn()
         self.lasers = pygame.sprite.Group()
@@ -257,7 +254,7 @@ class Game:
         self.players.draw(self.screen)
         self.walls.draw(self.screen)
         self.lasers.draw(self.screen)
-        self.upgrades.draw(self.screen)  
+        self.upgrades.draw(self.screen)
 
         self.screen.blit(self.scoreFont.render('Player 1: ' + str(self.p1score), False, (255, 0, 0)), (self.size[0] / 2 - 150, 1))
         self.screen.blit(self.scoreFont.render('Player 2: ' + str(self.p2score), False, (0, 0, 255)), (self.size[0] / 2 + 150, 1))
@@ -273,11 +270,11 @@ class Game:
         self.lasers.update()
         if pygame.time.get_ticks() > self.lastShot + self.cooldown:
             if keys[pygame.K_q]:
-                self.lasers.add(LeadProj(updateCoords(20, self.player1.angle, self.player1.coords), 2, (0, 255, 0), self.screen, self.laserLength, 3, self.player1.angle, self.player1))
+                self.lasers.add(LeadProj(updateCoords(18, self.player1.angle, self.player1.coords), 2, (0, 255, 0), self.screen, self.laserLength, 3.25, self.player1.angle, self.player1))
                 self.laserSound.play()
                 self.lastShot = pygame.time.get_ticks()
             if keys[pygame.K_m]:
-                self.lasers.add(LeadProj(updateCoords(20, self.player2.angle, self.player2.coords), 2, (0, 255, 0), self.screen, self.laserLength, 3, self.player2.angle, self.player2))
+                self.lasers.add(LeadProj(updateCoords(18, self.player2.angle, self.player2.coords), 2, (0, 255, 0), self.screen, self.laserLength, 3.25, self.player2.angle, self.player2))
                 self.laserSound.play()
                 self.lastShot = pygame.time.get_ticks()
 
@@ -315,7 +312,7 @@ class Game:
                         collisions[sprite][0].collide()
                 if group1 == self.players and group2 == self.upgrades:
                     sprite.upgrade = collisions[sprite][0].upType
-                    sprite.upgradeCounter = 3
+                    sprite.upgradeCounter += 3
                     collisions[sprite][0].kill()
                     self.upgradeSound.play()
         
@@ -327,38 +324,25 @@ class Game:
         self.lasers.empty()
 
     def fixPlayerSpawn(self):
-        spawnCoords = [(50, 105), (90, 400), (150, 550), (160, 90), (400, 200), (550, 450), (700, 410), 
-            (1000, 400), (1120, 110), (1150, 570), (1200, 110)]
-        loop = True
-        while loop:
-            for firstPlayer in self.players:
-                numb = random.randint(0, len(spawnCoords) - 1)
-                firstPlayer.prevCoords = firstPlayer.coords = firstPlayer.rect.center = spawnCoords[numb]
-                for secPlayer in self.players:
-                    if firstPlayer != secPlayer:
-                        if firstPlayer.rect.center == secPlayer.rect.center:
-                            numb = random.randint(0, len(spawnCoords) - 1)
-                            firstPlayer.prevCoords = firstPlayer.coords = firstPlayer.rect.center = spawnCoords[numb]
-                        else:
-                            loop = False
+        spawnCoords = [(50, 105), (90, 400), (150, 550), (160, 90), (400, 200), (550, 450), (700, 410), (1000, 400), (1120, 110), (1150, 570), (1200, 110)]
+        self.player1.prevCoords = self.player1.coords = self.player1.rect.center = random.choice(spawnCoords)
+        self.player2.prevCoords = self.player2.coords = self.player2.rect.center = random.choice(spawnCoords)
+        while self.player1.coords == self.player2.coords:
+            self.player1.prevCoords = self.player1.coords = self.player1.rect.center = random.choice(spawnCoords)
 
-    def fixUpgradeSpawn(self, group1, group2):
-        loop = True
-        while loop:
-            collisions = pygame.sprite.groupcollide(group1, group2, False, False, pygame.sprite.collide_mask)
-            for sprite in collisions:
-                if sprite != collisions[sprite][0]:
-                    sprite.prevCoords = sprite.coords = sprite.rect.center = random.randint(0, self.size[0]), random.randint(60, self.size[1])
-            if collisions == {} or sprite == collisions[sprite][0]:
-                loop = False
+    def fixUpgradeSpawn(self, upgrade, group):
+        while True:
+            collisions = pygame.sprite.spritecollide(upgrade, group, False)
+            if collisions != []:
+                upgrade.prevCoords = upgrade.coords = upgrade.rect.center = random.randint(0, self.size[0]), random.randint(60, self.size[1])
+            else:
+                break
     
 
     def spawnUpgrade(self, prob):
-        numb = random.randint(1, prob)
-        if numb == 1:
-            tempGroup = pygame.sprite.Group(Upgrade((255, 255, 0), (random.randint(0, self.size[0]), random.randint(60, self.size[1])), 'passWall'))
-            self.fixUpgradeSpawn(tempGroup, self.walls)
-            self.fixUpgradeSpawn(tempGroup, self.players)
-            self.upgrades.add(tempGroup.sprites()[-1])
+        if random.randint(1, prob) == 1:
+            self.upgrades.add(Upgrade((255, 255, 0), (random.randint(0, self.size[0]), random.randint(60, self.size[1])), 'passWall'))
+            self.fixUpgradeSpawn(self.upgrades.sprites()[-1], self.walls)
+            self.fixUpgradeSpawn(self.upgrades.sprites()[-1], self.players)
 
 Main()
