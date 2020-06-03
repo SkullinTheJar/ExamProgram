@@ -237,8 +237,6 @@ class Game:
         self.screen = pygame.display.set_mode(size)
         self.player1 = Player(1, (0, 0), 1, 1, 'C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/red tank.png', size)
         self.player2 = Player(2, (0, 0), 1.25, 1.25, 'C:/Users/andre/OneDrive - AARHUS TECH/Programmering/ExamProgram/blue tank.png', size)
-        # self.player1 = Player(1, (0, 0), 0.25, 0.25, 'C:/Users/WaffleFlower/Desktop/Skole/Programmering/ExamProgram/red_tank_exp_v2.png', size)
-        # self.player2 = Player(2, (0, 0), 0.25, 0.25, 'C:/Users/WaffleFlower/Desktop/Skole/Programmering/ExamProgram/blue_tank_exp.png', size)
         self.players = pygame.sprite.Group(self.player1, self.player2)
         self.fixPlayerSpawn()
         self.lasers = pygame.sprite.Group()
