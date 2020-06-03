@@ -3,9 +3,11 @@ import pygame
 import math
 import random
 
+#initialiserer pygame samt konditionerne for initialiseringsparametrene af mixer-modulen
 pygame.mixer.pre_init(16500, -16, 3, 2048)
 pygame.init()
 
+#funktion der bruges af LeadProj- og Player-objekterne til at bevæge dem et bestemt afstand (speed) i en bestemt retning (angle)
 def updateCoords(speed, angle, coords, backwards = False):
     angle %= 360
     deltaCoords = [speed * math.cos(math.radians(angle)), -speed * math.sin(math.radians(angle))]
@@ -14,6 +16,7 @@ def updateCoords(speed, angle, coords, backwards = False):
     coords = coords[0] + deltaCoords[0], coords[1] + deltaCoords[1]
     return coords
 
+#funktionen er kører programmet. Opretter Game-objektet og kalder på dens draw- og update-metoder hver frame
 def Main():
     game = Game((1300, 600))
     while 1:
@@ -22,6 +25,7 @@ def Main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT: sys.exit()
 
+#Player-klassen, som styrer tanksene
 class Player(pygame.sprite.Sprite):
     def __init__(self, playerNumb, coords, speed, turnSpeed, image, mapSize):
         pygame.sprite.Sprite.__init__(self)
@@ -39,6 +43,7 @@ class Player(pygame.sprite.Sprite):
         self.upgrade = None
         self.upgradeCounter = 0
 
+    #updaterer koordinater efter hvilke knappe på tastaturen er pressede nede.
     def update(self, keys):
         self.prevCoords = self.coords
         self.prevAngle = self.angle
@@ -88,6 +93,7 @@ class Player(pygame.sprite.Sprite):
         if self.upgradeCounter == 0:  
             self.upgrade = None
 
+    #roterer tank-imagen så den stemmer med vinklen
     def rotate(self):
         center = self.rect.center
         self.image = pygame.transform.rotate(self.originalImage, self.angle)
@@ -95,17 +101,19 @@ class Player(pygame.sprite.Sprite):
         self.rect.center = center
         self.mask = pygame.mask.from_surface(self.image)
 
+    #forhindrer tanken i et bevæge sig hvis den støder ind i noget
     def collide(self):
         self.coords = self.prevCoords
         self.angle = self.prevAngle
 
+    #sætte nogle af tankens værdier (vinkler og opgradering) til 0 når spillet genstartes
     def reset(self):
-        self.coords = self.prevCoords = self.rect.center = random.randint(0, self.mapSize[0]), random.randint(60, self.mapSize[1])
         self.angle = 0
         self.rotate()
         self.upgradeCounter = 0
         self.upgrade = None
 
+#Forhældre-klassen til LeadProj og SubProj
 class Projectile(pygame.sprite.Sprite):
     def __init__(self, coords, radius, color, screen, length):
         pygame.sprite.Sprite.__init__(self)
@@ -120,6 +128,7 @@ class Projectile(pygame.sprite.Sprite):
         self.spawned = False
         self.subProj = None
         
+    #spawner et SubProj, hvis Proj-objektet ikke endnu har gjort det, og altid kalder på dens update-metode
     def update(self):
         self.prevCoords = self.coords
         if self.length > 0:
@@ -128,6 +137,7 @@ class Projectile(pygame.sprite.Sprite):
                 self.spawned = True
             self.subProj.update()
     
+#Repræsenterer den første cirkel i laseren
 class LeadProj(Projectile):
     def __init__(self, coords, radius, color, screen, length, speed, angle, player, timer = 1100):
         super().__init__(coords, radius, color, screen, length - 1)
@@ -142,6 +152,8 @@ class LeadProj(Projectile):
         if self.projUpgrade == 'passWall':    
             self.player.upgradeCounter -= 1
         
+    #opdaterer cirklens position baseret på dens vinkel, hastighed, og nuværende koordinater
+    #sletter objektet efter noget tid er gået
     def update(self):
         self.frames += 1
         super().update()
@@ -149,6 +161,7 @@ class LeadProj(Projectile):
         if self.frames == self.timer:
             self.kill()
 
+    #Får cirklen til at rikochettere når den rammer en væg
     def wallCollide(self, wall):
         if self.projUpgrade != 'passWall':
             if wall.orient:
@@ -160,17 +173,20 @@ class LeadProj(Projectile):
                 elif 180 < self.angle <= 360:
                     self.angle = 360 - (self.angle - 180)
         
-                
+#Repræsenterer cirklerne der følger efter den første cirkel
 class SubProj(Projectile):
     def __init__(self, coords, radius, color, screen, length, proj):
         super().__init__(coords, radius, color, screen, length)
         self.proj = proj
 
+    #Sætter objektets position lige den forrige position af cirklen foran i kæden
+    #Tegner objektet på skærmen
     def update(self):
         super().update()
         self.coords = self.rect.center = self.proj.prevCoords
         self.screen.blit(self.image, self.rect)
 
+#Repræsenterer væggene. De kan anten være vandret eller lodret
 class Wall(pygame.sprite.Sprite):
     def __init__(self, coords, orient, length = 100, width = 3, invert = False):
         pygame.sprite.Sprite.__init__(self)
@@ -192,6 +208,7 @@ class Wall(pygame.sprite.Sprite):
         
         self.mask = pygame.mask.from_surface(self.image)
 
+#Repræsenterer opgraderingerne
 class Upgrade(pygame.sprite.Sprite):
     def __init__(self, color, coords, upType):
         pygame.sprite.Sprite.__init__(self)
@@ -204,6 +221,8 @@ class Upgrade(pygame.sprite.Sprite):
         self.rect.center = coords
         self.upType = upType
     
+#Repræsenterer spillet som et helhed
+#Opretter de fleste objekter, opdaterer dem og tegner dem på skærmen, som den også opretter
 class Game:
     def __init__(self, size, laserLength = 10, cooldown = 500):
         pygame.display.set_caption('LazerTankz: The Game')
@@ -249,6 +268,7 @@ class Game:
         self.upgradeFont = pygame.font.Font(pygame.font.get_default_font(), 10)
         self.clock = pygame.time.Clock()
 
+    #Tegner alle objekterne og tekst på skærmen
     def draw(self):
         self.screen.fill((0, 0, 0))
         self.players.draw(self.screen)
@@ -263,6 +283,9 @@ class Game:
             if player.upgrade:
                 self.screen.blit(self.upgradeFont.render('UPGRADED!', False, (255, 255, 0)), (player.rect.topleft[0] - 11, player.rect.topleft[1] - 11))
 
+    #Opdaterer alle objekterne
+    #Opretter lasere (LeadProj-objekter) hvis det rigtige knap bliver presset ned
+    #Kalder på collideGroups() flere gange for at registrere sammenstød mellem objekter
     def update(self):
         self.clock.tick(120)
         keys = pygame.key.get_pressed()
@@ -287,6 +310,7 @@ class Game:
         self.spawnUpgrade(10000)
         pygame.display.flip()
 
+    #registrerer sammenstød mellem objekterne i 2 grupper og medfører de nødvendige handlingerne baseret på hvilke objekter de er
     def collideGroups(self, group1, group2):
         collisions = pygame.sprite.groupcollide(group1, group2, False, False)
         for sprite in collisions:
@@ -316,6 +340,7 @@ class Game:
                     collisions[sprite][0].kill()
                     self.upgradeSound.play()
         
+    #Genstarter spillet ved at fjerne all opgraderinger, fjerne alle laserene, nulstille player-objekterne og give dem nye positioner
     def reset(self):
         self.player1.reset()
         self.player2.reset()
@@ -323,6 +348,7 @@ class Game:
         self.upgrades.empty()
         self.lasers.empty()
 
+    #Giver spillerne nye, delvist tilfældige positioner, og sikrer at de ikke har samme position
     def fixPlayerSpawn(self):
         spawnCoords = [(50, 105), (90, 400), (150, 550), (160, 90), (400, 200), (550, 450), (700, 410), (1000, 400), (1120, 110), (1150, 570), (1200, 110)]
         self.player1.prevCoords = self.player1.coords = self.player1.rect.center = random.choice(spawnCoords)
@@ -330,6 +356,7 @@ class Game:
         while self.player1.coords == self.player2.coords:
             self.player1.prevCoords = self.player1.coords = self.player1.rect.center = random.choice(spawnCoords)
 
+    #sikrer at nye opgraderinger ikke oprettes ovenpå vægge eller tanks
     def fixUpgradeSpawn(self, upgrade, group):
         while True:
             collisions = pygame.sprite.spritecollide(upgrade, group, False)
@@ -338,11 +365,12 @@ class Game:
             else:
                 break
     
-
+    #har en bestemt chance for at oprette en ny opgradering med en tilfældig position
     def spawnUpgrade(self, prob):
         if random.randint(1, prob) == 1:
             self.upgrades.add(Upgrade((255, 255, 0), (random.randint(0, self.size[0]), random.randint(60, self.size[1])), 'passWall'))
             self.fixUpgradeSpawn(self.upgrades.sprites()[-1], self.walls)
             self.fixUpgradeSpawn(self.upgrades.sprites()[-1], self.players)
 
+#starter programmet
 Main()
