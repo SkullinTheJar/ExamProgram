@@ -3,11 +3,11 @@ import pygame
 import math
 import random
 
-#initialiserer pygame samt konditionerne for initialiseringsparametrene af mixer-modulen
+#initialiserer pygame samt kriterier for initialiseringsparametrene af mixer-modulen
 pygame.mixer.pre_init(16500, -16, 3, 2048)
 pygame.init()
 
-#funktion der bruges af LeadProj- og Player-objekterne til at bevæge dem et bestemt afstand (speed) i en bestemt retning (angle)
+#funktion der bruges af LeadProj- og Player-objekterne til at bevæge dem en bestemt afstand (speed) i en bestemt retning (angle)
 def updateCoords(speed, angle, coords, backwards = False):
     angle %= 360
     deltaCoords = [speed * math.cos(math.radians(angle)), -speed * math.sin(math.radians(angle))]
@@ -43,7 +43,7 @@ class Player(pygame.sprite.Sprite):
         self.upgrade = None
         self.upgradeCounter = 0
 
-    #updaterer koordinater efter hvilke knappe på tastaturen er pressede nede.
+    #opdaterer koordinater alt efter hvilke knapper på tastaturet er presset ned.
     def update(self, keys):
         self.prevCoords = self.coords
         self.prevAngle = self.angle
@@ -93,7 +93,7 @@ class Player(pygame.sprite.Sprite):
         if self.upgradeCounter == 0:  
             self.upgrade = None
 
-    #roterer tank-imagen så den stemmer med vinklen
+    #roterer tank-imaget så det stemmer overens med vinklen
     def rotate(self):
         center = self.rect.center
         self.image = pygame.transform.rotate(self.originalImage, self.angle)
@@ -106,14 +106,14 @@ class Player(pygame.sprite.Sprite):
         self.coords = self.prevCoords
         self.angle = self.prevAngle
 
-    #sætte nogle af tankens værdier (vinkler og opgradering) til 0 når spillet genstartes
+    #sætter nogle af tankens værdier (vinkler og opgradering) til 0 når spillet genstartes
     def reset(self):
         self.angle = 0
         self.rotate()
         self.upgradeCounter = 0
         self.upgrade = None
 
-#Forhældre-klassen til LeadProj og SubProj
+#Forældre-klassen til LeadProj og SubProj
 class Projectile(pygame.sprite.Sprite):
     def __init__(self, coords, radius, color, screen, length):
         pygame.sprite.Sprite.__init__(self)
@@ -128,7 +128,7 @@ class Projectile(pygame.sprite.Sprite):
         self.spawned = False
         self.subProj = None
         
-    #spawner et SubProj, hvis Proj-objektet ikke endnu har gjort det, og altid kalder på dens update-metode
+    #spawner et SubProj, hvis Proj-objektet ikke endnu har gjort det, og kalder altid på dens update-metode
     def update(self):
         self.prevCoords = self.coords
         if self.length > 0:
@@ -186,7 +186,7 @@ class SubProj(Projectile):
         self.coords = self.rect.center = self.proj.prevCoords
         self.screen.blit(self.image, self.rect)
 
-#Repræsenterer væggene. De kan anten være vandret eller lodret
+#Repræsenterer væggene. De kan enten være vandret eller lodret
 class Wall(pygame.sprite.Sprite):
     def __init__(self, coords, orient, length = 100, width = 3, invert = False):
         pygame.sprite.Sprite.__init__(self)
@@ -268,7 +268,7 @@ class Game:
         self.upgradeFont = pygame.font.Font(pygame.font.get_default_font(), 10)
         self.clock = pygame.time.Clock()
 
-    #Tegner alle objekterne og tekst på skærmen
+    #Tegner alle objekter og tekst på skærmen
     def draw(self):
         self.screen.fill((0, 0, 0))
         self.players.draw(self.screen)
@@ -310,7 +310,7 @@ class Game:
         self.spawnUpgrade(10000)
         pygame.display.flip()
 
-    #registrerer sammenstød mellem objekterne i 2 grupper og medfører de nødvendige handlingerne baseret på hvilke objekter de er
+    #registrerer sammenstød mellem objekterne i 2 grupper og medfører de nødvendige handlinger ud fra på hvilke objekter de er
     def collideGroups(self, group1, group2):
         collisions = pygame.sprite.groupcollide(group1, group2, False, False)
         for sprite in collisions:
@@ -340,7 +340,7 @@ class Game:
                     collisions[sprite][0].kill()
                     self.upgradeSound.play()
         
-    #Genstarter spillet ved at fjerne all opgraderinger, fjerne alle laserene, nulstille player-objekterne og give dem nye positioner
+    #Genstarter spillet ved at fjerne alle opgraderinger, fjerne alle laserene, nulstille player-objekterne og give dem nye positioner
     def reset(self):
         self.player1.reset()
         self.player2.reset()
